@@ -1,0 +1,36 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>Benvenuto su AI Strategy Hub! 🎉</h2>
+
+<p>Ciao <strong>{{ user_name }}</strong>,</p>
+
+<p>Grazie per esserti registrato su AI Strategy Hub, la piattaforma di consulenza strategica per l'intelligenza artificiale.</p>
+
+<p>Il tuo account è stato creato con successo. Per iniziare a utilizzare tutti i nostri servizi, ti chiediamo di verificare il tuo indirizzo email.</p>
+
+<div style="text-align: center;">
+    <a href="{{ verification_link }}" class="email-button">Verifica il tuo account</a>
+</div>
+
+<div class="info-box">
+    <p style="margin: 0;"><strong>📧 Email:</strong> {{ user_email }}</p>
+    <p style="margin: 5px 0 0 0;"><strong>🔗 Link valido per:</strong> {{ expiry_hours }} ore</p>
+</div>
+
+<p>Se non riesci a cliccare sul pulsante, copia e incolla questo link nel tuo browser:</p>
+<p style="word-break: break-all; color: #3b82f6;">{{ verification_link }}</p>
+
+<p style="margin-top: 30px;">Una volta verificato l'account, potrai:</p>
+<ul style="color: #4b5563;">
+    <li>Richiedere preventivi personalizzati</li>
+    <li>Acquistare servizi di consulenza</li>
+    <li>Accedere alla knowledge base AI</li>
+    <li>Ricevere assistenza dedicata</li>
+</ul>
+
+<p style="margin-top: 30px;">Hai domande? Il nostro team è sempre a tua disposizione!</p>
+
+<p>A presto,<br>
+<strong>Il Team di AI Strategy Hub</strong></p>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>Fattura Elettronica Disponibile 📄</h2>
+
+<p>Ciao <strong>{{ user_name }}</strong>,</p>
+
+<p>La tua fattura elettronica è stata emessa e inviata al Sistema di Interscambio (SDI).</p>
+
+<div class="info-box">
+    <p style="margin: 0;"><strong>Numero Fattura:</strong> {{ invoice_number }}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Data Emissione:</strong> {{ invoice_date }}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Importo Totale:</strong> €{{ invoice_total }}</p>
+</div>
+
+<h3 style="color: #1e3a8a; margin: 30px 0 15px 0;">Riepilogo Fattura</h3>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    <tbody>
+        <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Imponibile:</strong></td>
+            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #e5e7eb;">€{{ invoice_subtotal }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>IVA (22%):</strong></td>
+            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #e5e7eb;">€{{ invoice_tax }}</td>
+        </tr>
+        <tr style="background-color: #eff6ff;">
+            <td style="padding: 12px; border-top: 2px solid #e5e7eb;"><strong>Totale:</strong></td>
+            <td style="padding: 12px; text-align: right; border-top: 2px solid #e5e7eb;"><strong>€{{ invoice_total }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ invoice_pdf_url }}" class="email-button">Scarica PDF</a>
+</div>
+
+<h3 style="color: #1e3a8a; margin: 30px 0 15px 0;">Informazioni Importanti</h3>
+
+<p>✅ <strong>XML Inviato a SDI:</strong> L'originale XML è stato trasmesso al Sistema di Interscambio</p>
+<p>📧 <strong>PEC:</strong> {% if has_pec %}Riceverai l'originale anche via PEC{% else %}Assicurati di aver configurato la tua PEC o Codice SDI nel profilo{% endif %}</p>
+<p>📱 <strong>Dashboard:</strong> Puoi consultare tutte le tue fatture nella <a href="{{ dashboard_url }}" style="color: #3b82f6;">dashboard</a></p>
+
+<div class="info-box">
+    <p style="margin: 0;"><strong>💡 Conservazione:</strong> Le fatture elettroniche devono essere conservate per 10 anni. Potrai sempre scaricarle dal tuo account.</p>
+</div>
+
+<p style="margin-top: 40px;">Per qualsiasi domanda sulla fattura, contatta il nostro supporto.</p>
+
+<p>Cordiali saluti,<br>
+<strong>Il Team di AI Strategy Hub</strong></p>
+{% endblock %}

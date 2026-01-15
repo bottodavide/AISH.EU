@@ -1,0 +1,65 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2>Conferma Ordine #{{ order_number }} 📦</h2>
+
+<p>Ciao <strong>{{ user_name }}</strong>,</p>
+
+<p>Grazie per il tuo ordine! Abbiamo ricevuto il pagamento e stiamo preparando i tuoi servizi.</p>
+
+<div class="info-box">
+    <p style="margin: 0;"><strong>Numero Ordine:</strong> {{ order_number }}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Data:</strong> {{ order_date }}</p>
+    <p style="margin: 5px 0 0 0;"><strong>Totale:</strong> €{{ order_total }}</p>
+</div>
+
+<h3 style="color: #1e3a8a; margin: 30px 0 15px 0;">Dettagli Ordine</h3>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+    <thead>
+        <tr style="background-color: #f3f4f6;">
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Servizio</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e5e7eb;">Q.tà</th>
+            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Prezzo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order_items %}
+        <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">{{ item.description }}</td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #e5e7eb;">{{ item.quantity }}</td>
+            <td style="padding: 12px; text-align: right; border-bottom: 1px solid #e5e7eb;">€{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="2" style="padding: 12px; text-align: right; border-top: 2px solid #e5e7eb;"><strong>Subtotale:</strong></td>
+            <td style="padding: 12px; text-align: right; border-top: 2px solid #e5e7eb;">€{{ order_subtotal }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding: 12px; text-align: right;"><strong>IVA (22%):</strong></td>
+            <td style="padding: 12px; text-align: right;">€{{ order_tax }}</td>
+        </tr>
+        <tr style="background-color: #eff6ff;">
+            <td colspan="2" style="padding: 12px; text-align: right;"><strong>Totale:</strong></td>
+            <td style="padding: 12px; text-align: right;"><strong>€{{ order_total }}</strong></td>
+        </tr>
+    </tfoot>
+</table>
+
+<h3 style="color: #1e3a8a; margin: 30px 0 15px 0;">Prossimi Passi</h3>
+
+<p>📄 <strong>Fattura:</strong> Riceverai la fattura elettronica a breve</p>
+<p>📧 <strong>Comunicazioni:</strong> Ti contatteremo per organizzare i servizi acquistati</p>
+<p>💼 <strong>Dashboard:</strong> Puoi monitorare l'ordine nella tua <a href="{{ dashboard_url }}" style="color: #3b82f6;">dashboard personale</a></p>
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{{ order_url }}" class="email-button">Visualizza Ordine</a>
+</div>
+
+<p style="margin-top: 40px;">Hai domande sul tuo ordine? Siamo qui per aiutarti!</p>
+
+<p>Grazie per la fiducia,<br>
+<strong>Il Team di AI Strategy Hub</strong></p>
+{% endblock %}
