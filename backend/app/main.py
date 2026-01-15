@@ -16,6 +16,16 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.logging_config import setup_logging
+from app.core.database import check_database_health
+from app.core.exceptions import (
+    AIStrategyHubException,
+    aistrategyhub_exception_handler,
+    generic_exception_handler,
+    http_exception_handler,
+)
+
+# Import routers
+from app.api.routes import auth, users, services
 
 # Setup logging configurazione
 setup_logging()
@@ -95,23 +105,28 @@ async def health_check():
 
     Verifica:
     - API is responsive
-    - Database connection (TODO)
+    - Database connection
     - Redis connection (TODO)
     - External services status (TODO)
     """
     # Log richiesta health check (livello debug per non riempire log)
     logger.debug("Health check requested")
 
+    # Check database
+    db_status = "ok" if await check_database_health() else "down"
+
+    # Overall status
+    overall_status = "healthy" if db_status == "ok" else "degraded"
+
     health_status = {
-        "status": "healthy",
+        "status": overall_status,
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
         "checks": {
             "api": "ok",
-            # TODO: Aggiungere check per database, redis, etc.
-            # "database": await check_database(),
+            "database": db_status,
+            # TODO: Aggiungere check per redis, etc.
             # "redis": await check_redis(),
-            # "ms_graph": await check_ms_graph_token(),
         },
     }
 
@@ -135,50 +150,37 @@ async def root():
 # API Router Registration
 # =============================================================================
 
-# TODO: Registra routers per:
-# - Authentication (/api/v1/auth)
-# - Services (/api/v1/services)
+# Registra tutti i router con prefix /api/v1
+API_V1_PREFIX = "/api/v1"
+
+app.include_router(auth.router, prefix=API_V1_PREFIX, tags=["Authentication"])
+app.include_router(users.router, prefix=API_V1_PREFIX, tags=["Users"])
+app.include_router(services.router, prefix=API_V1_PREFIX, tags=["Services"])
+
+# TODO: Registra altri routers:
 # - Orders (/api/v1/orders)
 # - Invoices (/api/v1/invoices)
-# - Admin (/api/v1/admin)
 # - CMS (/api/v1/cms)
 # - Chat/AI (/api/v1/chat)
 # - Webhooks (/api/v1/webhooks)
+# - Support (/api/v1/support)
+# - Notifications (/api/v1/notifications)
 
-# from app.api.v1.api import api_router
-# app.include_router(api_router, prefix="/api/v1")
+logger.info("API routers registered successfully")
 
 
 # =============================================================================
 # Exception Handlers
 # =============================================================================
 
+# Custom exception handlers
+from fastapi import HTTPException
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    """
-    Global exception handler per gestire errori non catturati.
-    """
-    logger.error(
-        f"Unhandled exception: {str(exc)}",
-        exc_info=True,
-        extra={
-            "url": str(request.url),
-            "method": request.method,
-            "client": request.client.host if request.client else None,
-        },
-    )
+app.add_exception_handler(AIStrategyHubException, aistrategyhub_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
-    return JSONResponse(
-        status_code=500,
-        content={
-            "success": False,
-            "error": {
-                "code": "INTERNAL_SERVER_ERROR",
-                "message": "An unexpected error occurred" if not settings.DEBUG else str(exc),
-            },
-        },
-    )
+logger.info("Exception handlers registered")
 
 
 # =============================================================================
