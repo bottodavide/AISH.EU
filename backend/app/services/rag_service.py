@@ -11,11 +11,10 @@ import openai
 from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
-from app.core.config import get_settings
+from app.core.config import settings
 from app.models.knowledge_base import KnowledgeBaseChunk, KnowledgeBaseDocument
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
 
 class RAGService:

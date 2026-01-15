@@ -16,7 +16,7 @@ from sqlalchemy import select, desc
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
-from app.core.security import get_current_user_optional
+from app.core.dependencies import get_current_user_optional
 from app.models.user import User
 from app.models.chat import ChatConversation, ChatMessage, MessageRole, UserFeedback
 from app.services.claude_service import get_claude_service

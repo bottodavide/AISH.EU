@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Security scheme per JWT Bearer token
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 # =============================================================================
 # AUTHENTICATION DEPENDENCIES
@@ -237,6 +238,7 @@ class RoleChecker:
 # Dependency shortcuts per ruoli comuni
 require_super_admin = RoleChecker([UserRole.SUPER_ADMIN])
 require_admin = RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN])
+require_admin_or_editor = RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.EDITOR])
 require_editor = RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.EDITOR])
 require_support = RoleChecker([UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.SUPPORT])
 require_customer = RoleChecker([
@@ -297,7 +299,7 @@ def verify_ownership_or_admin(resource_owner_id: UUID, current_user: User) -> bo
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
     db: AsyncSession = Depends(get_async_db),
 ) -> Optional[User]:
     """

@@ -16,7 +16,7 @@ from sqlalchemy import select, desc, func
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.dependencies import get_current_user
 from app.models.user import User, UserRole
 from app.models.knowledge_base import (
     KnowledgeBaseDocument,

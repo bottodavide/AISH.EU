@@ -9,10 +9,9 @@ import logging
 from typing import List, Dict, Any, Optional, AsyncGenerator
 import anthropic
 from anthropic import AsyncAnthropic
-from app.core.config import get_settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
 
 class ClaudeService:
