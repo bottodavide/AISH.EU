@@ -206,9 +206,9 @@ class Settings(BaseSettings):
     # =========================================================================
     # FILE STORAGE
     # =========================================================================
-    UPLOAD_DIR: str = "/app/uploads"
-    MAX_UPLOAD_SIZE_MB: int = 10
-    ALLOWED_EXTENSIONS: List[str] = ["pdf", "docx", "doc", "txt", "md", "png", "jpg", "jpeg", "gif", "webp"]
+    UPLOAD_DIR: str = "./uploads"  # Relativo alla directory backend (locale storage)
+    MAX_UPLOAD_SIZE_MB: int = 20
+    ALLOWED_EXTENSIONS: List[str] = ["pdf", "docx", "doc", "txt", "md", "png", "jpg", "jpeg", "gif", "webp", "xlsx", "xls", "csv", "zip"]
 
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod

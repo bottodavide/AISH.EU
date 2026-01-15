@@ -36,6 +36,7 @@ from app.models.user import User, UserProfile, Session, LoginAttempt
 from app.models.service import Service, ServiceContent, ServiceFAQ, ServiceImage
 from app.models.order import Order, OrderItem, Payment, QuoteRequest
 from app.models.invoice import Invoice, InvoiceLine, CreditNote
+from app.models.file import File
 from app.models.cms import Page, PageVersion, BlogPost, BlogCategory, BlogTag, BlogPostTag, MediaLibrary
 from app.models.newsletter import NewsletterSubscriber, EmailCampaign, EmailSend
 from app.models.knowledge_base import KnowledgeBaseDocument, KnowledgeBaseChunk
