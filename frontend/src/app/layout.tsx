@@ -49,7 +49,7 @@ export const metadata: Metadata = {
       'Supporto strategico per aziende che vogliono innovare con AI in sicurezza e compliance.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/logo.png',
         width: 1200,
         height: 630,
         alt: 'AI Strategy Hub',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: 'AI Strategy Hub',
     description:
       'Consulenza AI, GDPR e Cybersecurity per aziende che innovano in sicurezza.',
-    images: ['/twitter-image.jpg'],
+    images: ['/logo.png'],
   },
   robots: {
     index: true,
