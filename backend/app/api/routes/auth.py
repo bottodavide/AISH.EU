@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_async_db
 from app.core.dependencies import get_current_user
 from app.core.security import (
@@ -196,7 +197,6 @@ async def register(
         is_active=True,
         is_email_verified=False,
         email_verification_token=verification_token,
-        email_verification_sent_at=datetime.utcnow(),
     )
     db.add(user)
     await db.flush()
@@ -356,8 +356,10 @@ async def login(
     # Crea session record
     session = Session(
         user_id=user.id,
-        session_token=access_token[:50],  # Store prefix for tracking
-        expires_at=datetime.utcnow() + timedelta(minutes=15),  # Match access token expiry
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_at=datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
+        refresh_expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
     )
     db.add(session)
 
@@ -509,7 +511,6 @@ async def verify_email(
     # Marca email come verificata
     user.is_email_verified = True
     user.email_verification_token = None
-    user.email_verification_sent_at = None
 
     # Audit log
     await create_audit_log(

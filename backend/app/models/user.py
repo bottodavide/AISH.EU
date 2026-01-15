@@ -141,7 +141,7 @@ class User(Base, UUIDMixin, TimestampMixin):
         comment="Account attivo (False = sospeso)",
     )
 
-    email_verified = Column(
+    is_email_verified = Column(
         Boolean,
         nullable=False,
         default=False,
@@ -200,6 +200,19 @@ class User(Base, UUIDMixin, TimestampMixin):
         INET,
         nullable=True,
         comment="IP ultimo login successo",
+    )
+
+    failed_login_attempts = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        comment="Contatore tentativi login falliti (reset a 0 dopo successo)",
+    )
+
+    locked_until = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Account bloccato fino a questo timestamp (NULL se non bloccato)",
     )
 
     # -------------------------------------------------------------------------
@@ -577,7 +590,7 @@ class LoginAttempt(Base, UUIDMixin):
 
     ip_address = Column(
         INET,
-        nullable=False,
+        nullable=True,
         index=True,
         comment="IP address tentativo",
     )

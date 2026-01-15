@@ -8,7 +8,7 @@ Data: 2026-01-15
 import logging
 from typing import AsyncGenerator, Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
@@ -169,7 +169,7 @@ async def check_database_health() -> bool:
     try:
         async with AsyncSessionLocal() as session:
             # Test semplice query
-            await session.execute("SELECT 1")
+            await session.execute(text("SELECT 1"))
             logger.info("Database health check: OK")
             return True
     except Exception as e:
