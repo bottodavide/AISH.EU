@@ -106,6 +106,16 @@ class ApiClient {
           }
         }
 
+        // Log errori per debugging (solo in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('API Error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            data: error.response?.data,
+          });
+        }
+
         return Promise.reject(error);
       }
     );

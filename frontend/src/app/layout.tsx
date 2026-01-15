@@ -9,6 +9,7 @@ import '@/styles/globals.css';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ChatWidget } from '@/components/ChatWidget';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -97,10 +98,12 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <AuthProvider>
-          {children}
-          <ChatWidget />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            {children}
+            <ChatWidget />
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

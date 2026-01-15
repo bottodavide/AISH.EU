@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
+import { handleChatError, getErrorMessage } from '@/lib/error-handler';
 
 interface Message {
   id: string;
@@ -150,24 +151,18 @@ export function ChatWidget() {
       // Remove temp user message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMessage.id));
 
-      if (err.response?.status === 429) {
-        setError('Troppi messaggi. Riprova tra qualche minuto.');
-      } else if (err.response?.data?.detail) {
-        // Handle both string and array/object error formats
-        const detail = err.response.data.detail;
-        if (typeof detail === 'string') {
-          setError(detail);
-        } else if (Array.isArray(detail)) {
-          // Pydantic validation errors
-          setError(detail.map((e: any) => e.msg).join(', '));
-        } else if (typeof detail === 'object') {
-          setError(JSON.stringify(detail));
-        } else {
-          setError('Errore durante l\'invio del messaggio. Riprova.');
-        }
-      } else {
-        setError('Errore durante l\'invio del messaggio. Riprova.');
+      // Per errori gravi (500, network), redirect a pagina errore
+      if (
+        !err.response ||
+        err.response?.status >= 500 ||
+        err.code === 'ERR_NETWORK'
+      ) {
+        handleChatError(err);
+        return;
       }
+
+      // Per errori "minori" (validazione, rate limit), mostra inline
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
