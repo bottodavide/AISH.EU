@@ -1,35 +1,39 @@
 # TODO & TASK TRACKING
 
 **Progetto**: Sito Web Consulenza E-Commerce  
-**Ultimo Update**: 2026-01-15 (Sera - Post Code Review)
+**Ultimo Update**: 2026-01-15 (Notte - Fase 2 - Frontend Pages Complete)
 
 ---
 
 ## 📊 STATO PROGETTO (Aggiornato)
 
-**Completamento Complessivo**: 45%
+**Completamento Complessivo**: 70% 🎉
 
-- ✅ Backend Core: 90% (Auth, Users, Services, Orders, Invoices, Files, CMS ✨)
+- ✅ Backend Core: 90% (Auth, Users, Services, Orders, Invoices, Files, CMS complete)
 - ⚠️ Backend Advanced: 10% (AI, Webhooks, Workers mancanti)
-- ⚠️ Frontend: 15% (API client ✅, Auth context ✅, Pages da fare)
+- ✅ Frontend Public Pages: 100% (Homepage, Services, Blog complete ✨)
+- ✅ Frontend Protected Pages: 100% (Dashboard, Admin complete ✨)
+- ⚠️ Frontend Admin CRUD UIs: 0% (Editor pagine/blog/servizi da fare)
 - ⚠️ DevOps: 60% (config pronte, CI/CD mancante)
 - ❌ Testing: 0%
 
-**Ultimo Commit**: fd59d9e - CMS backend completo + Frontend foundation
-**Endpoints Totali**: 71 (+21 CMS appena aggiunti)
+**Ultimo Commit**: d82a6d7 - Frontend pages complete (6 pagine, +2,373 righe)
+**Endpoints Totali**: 71 (21 CMS + 50 core APIs)
+**Lines of Code**: ~17,500 backend + ~6,000 frontend = ~23,500 totale
 
 ---
 
 ## 🔥 PRIORITÀ IMMEDIATE (Prossime Sessioni)
 
-### 1. Stripe Webhook Handler (CRITICO)
-- [ ] Implementare POST /webhooks/stripe
-- [ ] Signature verification
-- [ ] Event processing (payment_intent.succeeded)
-- [ ] Update order status
-- [ ] Idempotency handling
-- **Blocca**: Pagamenti funzionanti
-- **Tempo stimato**: 4-6 ore
+### 1. Admin CRUD Interfaces (HIGH PRIORITY)
+- [ ] Services editor (create/edit form con image upload)
+- [ ] Blog post editor (TipTap/Lexical rich text editor)
+- [ ] Pages editor (CMS page management UI)
+- [ ] Categories & Tags management UI
+- [ ] Users management interface (edit, suspend, roles)
+- [ ] Orders/Invoices management (status updates, resend)
+- **Blocca**: Content management completo
+- **Tempo stimato**: 2-3 giorni
 
 ### 2. AI Chatbot & RAG System (CORE FEATURE)
 - [ ] Claude API service wrapper
@@ -39,10 +43,20 @@
 - [ ] Similarity search implementation
 - [ ] Guardrails system
 - [ ] Chat API endpoints
+- [ ] Chat widget UI component
 - **Blocca**: Funzionalità differenziante del prodotto
 - **Tempo stimato**: 2-3 giorni
 
-### 3. CMS Headless Backend (CONTENT MANAGEMENT) ✅ COMPLETATO
+### 3. Stripe Webhook Handler (CRITICAL)
+- [ ] Implementare POST /webhooks/stripe
+- [ ] Signature verification
+- [ ] Event processing (payment_intent.succeeded)
+- [ ] Update order status
+- [ ] Idempotency handling
+- **Blocca**: Pagamenti funzionanti
+- **Tempo stimato**: 4-6 ore
+
+### 4. CMS Headless Backend ✅ COMPLETATO
 - [x] CMS API routes (pages, blog, media)
 - [x] Page CRUD completo (7 endpoints)
 - [x] Blog CRUD completo (14 endpoints: posts + categories + tags)
@@ -52,13 +66,19 @@
 - **Status**: ✅ COMPLETATO (21 endpoints, 2,000+ righe)
 - **Commit**: fd59d9e
 
-### 4. Frontend Auth Pages (USER FLOWS)
-- [ ] Login page + MFA flow
-- [ ] Register page + email verification
-- [ ] Password reset flow
-- [ ] Auth context/state management
-- **Blocca**: Tutto il resto del frontend
-- **Tempo stimato**: 1-2 giorni
+### 5. Frontend Pages ✅ COMPLETATO
+- [x] Homepage pubblica completa (6 sections + footer)
+- [x] Login page + MFA flow
+- [x] Register page + email verification
+- [x] Services listing + detail pages
+- [x] Blog listing + post detail pages
+- [x] Customer dashboard (orders, invoices, profile)
+- [x] Admin dashboard (stats, quick actions, management)
+- [x] Auth context/state management
+- [x] Navigation component con auth status
+- [x] UI components base (Button, Input, Card, Alert, Label)
+- **Status**: ✅ COMPLETATO (6 pagine, 2,373 righe)
+- **Commit**: d82a6d7
 
 ---
 
@@ -1051,6 +1071,6 @@ _Nessuno al momento_
 
 ---
 
-**ULTIMO UPDATE**: 2026-01-15  
-**COMPLETION**: 0% (Setup fase)  
-**PROSSIMO MILESTONE**: Decisione backend framework
+**ULTIMO UPDATE**: 2026-01-15 (Notte - Fase 2)
+**COMPLETION**: 70% (Frontend Pages Complete ✅)
+**PROSSIMO MILESTONE**: Admin CRUD UIs + AI Chatbot
