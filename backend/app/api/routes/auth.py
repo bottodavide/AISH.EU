@@ -39,6 +39,10 @@ from app.core.exceptions import (
     MFARequiredError,
     ResourceNotFoundError,
 )
+from app.services.email_service import (
+    send_welcome_email,
+    send_password_reset_email,
+)
 from app.models.audit import AuditAction, AuditLog
 from app.models.user import LoginAttempt, Session, User, UserProfile
 from app.schemas.auth import (
@@ -223,8 +227,20 @@ async def register(
 
     logger.info(f"User registered successfully: {user.email} (ID: {user.id})")
 
-    # TODO: Invia email di verifica
-    # await send_verification_email(user.email, verification_token)
+    # Invia email di benvenuto con link verifica
+    user_name = f"{profile.first_name} {profile.last_name}".strip() or user.email.split("@")[0]
+    verification_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+
+    try:
+        send_welcome_email(
+            user_email=user.email,
+            user_name=user_name,
+            verification_link=verification_link,
+        )
+        logger.info(f"Welcome email sent to: {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send welcome email: {str(e)}")
+        # Non bloccare la registrazione se email fallisce
 
     return SuccessResponse(
         message="Registration successful. Please check your email to verify your account.",
@@ -571,8 +587,25 @@ async def password_reset_request(
 
     await db.commit()
 
-    # TODO: Invia email con link reset
-    # await send_password_reset_email(user.email, reset_token)
+    # Invia email con link reset password
+    # Carica profile per ottenere il nome
+    await db.refresh(user, ["profile"])
+    user_name = "Utente"
+    if user.profile:
+        user_name = f"{user.profile.first_name} {user.profile.last_name}".strip() or user.email.split("@")[0]
+
+    reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+
+    try:
+        send_password_reset_email(
+            user_email=user.email,
+            user_name=user_name,
+            reset_link=reset_link,
+        )
+        logger.info(f"Password reset email sent to: {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {str(e)}")
+        # Non rivelare se email fallisce (security)
 
     logger.info(f"Password reset token generated for: {user.email}")
 
