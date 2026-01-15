@@ -70,7 +70,6 @@ from app.models.cms import (
     BlogTag,
     Page,
     ContentStatus,
-    blog_post_tags,
 )
 from app.models.user import User
 from app.schemas.base import SuccessResponse

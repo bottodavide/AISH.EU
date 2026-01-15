@@ -26,11 +26,32 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeTopic(str, enum.Enum):
     """Topic per categorizzazione knowledge base"""
-    AI = "ai"
-    GDPR = "gdpr"
-    NIS2 = "nis2"
-    CYBERSECURITY = "cybersecurity"
-    GENERAL = "general"
+    AI = "AI"
+    GDPR = "GDPR"
+    NIS2 = "NIS2"
+    CYBERSECURITY = "CYBERSECURITY"
+    GENERAL = "GENERAL"
+
+
+# Alias per compatibilità con routes
+DocumentTopic = KnowledgeTopic
+
+
+class DocumentType(str, enum.Enum):
+    """Tipo di documento"""
+    PDF = "PDF"
+    TEXT = "TEXT"
+    URL = "URL"
+    DOCX = "DOCX"
+    MD = "MD"
+
+
+class ProcessingStatus(str, enum.Enum):
+    """Stato processing documento"""
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
 
 class KnowledgeBaseDocument(Base, UUIDMixin, TimestampMixin):
@@ -42,16 +63,21 @@ class KnowledgeBaseDocument(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "knowledge_base_documents"
 
     title = Column(String(255), nullable=False)
-    filename = Column(String(255), nullable=False)
-    file_path = Column(String(500), nullable=False)
-    file_type = Column(String(50), nullable=False, comment="pdf, docx, txt, md")
-    file_size = Column(Integer, nullable=False, comment="Size in bytes")
+    document_type = Column(Enum(DocumentType), nullable=False, default=DocumentType.TEXT)
+    topic = Column(Enum(DocumentTopic), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    source_url = Column(String(500), nullable=True)
+    author = Column(String(100), nullable=True)
+    file_path = Column(String(500), nullable=True)
+    file_size = Column(Integer, nullable=True, comment="Size in bytes")
     content_text = Column(Text, nullable=True, comment="Estratto plain text")
-    topic = Column(Enum(KnowledgeTopic), nullable=False, index=True)
+    chunk_count = Column(Integer, nullable=False, default=0)
+    processing_status = Column(Enum(ProcessingStatus), nullable=False, default=ProcessingStatus.PENDING)
     is_active = Column(Boolean, nullable=False, default=True, index=True)
-    uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    processed_at = Column(DateTime, nullable=True)
+    uploaded_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    uploader = relationship("User")
+    uploader = relationship("User", foreign_keys=[uploaded_by_user_id])
     chunks = relationship("KnowledgeBaseChunk", back_populates="document", cascade="all, delete-orphan")
 
     __table_args__ = (

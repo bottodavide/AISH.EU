@@ -153,7 +153,18 @@ export function ChatWidget() {
       if (err.response?.status === 429) {
         setError('Troppi messaggi. Riprova tra qualche minuto.');
       } else if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
+        // Handle both string and array/object error formats
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string') {
+          setError(detail);
+        } else if (Array.isArray(detail)) {
+          // Pydantic validation errors
+          setError(detail.map((e: any) => e.msg).join(', '));
+        } else if (typeof detail === 'object') {
+          setError(JSON.stringify(detail));
+        } else {
+          setError('Errore durante l\'invio del messaggio. Riprova.');
+        }
       } else {
         setError('Errore durante l\'invio del messaggio. Riprova.');
       }

@@ -11,7 +11,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
-from app.models.cms import PageStatus, PageType
+from app.models.cms import ContentStatus, PageType
 
 
 # =============================================================================
@@ -72,7 +72,7 @@ class PageResponse(PageBase):
     """Schema per response Page"""
 
     id: UUID
-    status: PageStatus
+    status: ContentStatus
     is_published: bool
     published_at: Optional[datetime]
     content_sections: List[dict]
