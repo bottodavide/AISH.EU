@@ -94,8 +94,8 @@ async def list_services(
             | (Service.subtitle.ilike(search_pattern))
         )
 
-    # Order by display_order
-    query = query.order_by(Service.display_order.asc(), Service.created_at.desc())
+    # Order by created_at (TODO: Add display_order field to Service model)
+    query = query.order_by(Service.created_at.desc())
 
     # Count total
     count_query = select(func.count()).select_from(query.subquery())
@@ -131,7 +131,7 @@ async def list_services(
                 base_price=service.base_price,
                 currency=service.currency,
                 is_published=service.is_published,
-                display_order=service.display_order,
+                # display_order=None,  # TODO: Add to model
                 seo_title=service.seo_title,
                 seo_description=service.seo_description,
                 price_display=price_display,
