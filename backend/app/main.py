@@ -25,7 +25,7 @@ from app.core.exceptions import (
 )
 
 # Import routers
-from app.api.routes import auth, files, invoices, orders, services, users
+from app.api.routes import auth, cms, files, invoices, orders, services, users
 
 # Setup logging configurazione
 setup_logging()
@@ -159,13 +159,14 @@ app.include_router(services.router, prefix=API_V1_PREFIX, tags=["Services"])
 app.include_router(orders.router)  # Orders router già include prefix /api/v1
 app.include_router(files.router)  # Files router già include prefix /api/v1
 app.include_router(invoices.router)  # Invoices router già include prefix /api/v1
+app.include_router(cms.router, prefix=API_V1_PREFIX, tags=["CMS"])  # ✅ CMS Headless completo
 
 # TODO: Registra altri routers:
-# - CMS (/api/v1/cms)
-# - Chat/AI (/api/v1/chat)
-# - Webhooks (/api/v1/webhooks)
-# - Support (/api/v1/support)
-# - Notifications (/api/v1/notifications)
+# - Chat/AI (/api/v1/chat) - AI Chatbot & RAG
+# - Webhooks (/api/v1/webhooks) - Stripe webhooks
+# - Support (/api/v1/support) - Support tickets
+# - Notifications (/api/v1/notifications) - In-app notifications
+# - Newsletter (/api/v1/newsletter) - Newsletter management
 
 logger.info("API routers registered successfully")
 
