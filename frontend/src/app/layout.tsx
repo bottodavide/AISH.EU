@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { cn } from '@/lib/utils';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -95,9 +96,9 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        {/* TODO: Aggiungere Providers (ThemeProvider, ReactQueryProvider, etc.) */}
-        {children}
-        {/* TODO: Aggiungere Toaster per notifications */}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
