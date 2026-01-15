@@ -1,12 +1,8 @@
 /**
  * Admin Create Blog Post Page
- * Descrizione: Form per creare nuovo articolo blog
+ * Descrizione: Form per creare nuovo articolo blog con TipTap editor
  * Autore: Claude per Davide
  * Data: 2026-01-15
- *
- * TODO: Integrare TipTap rich text editor per content_html
- * Per ora usa textarea HTML, ma TipTap andrà installato con:
- * npm install @tiptap/react @tiptap/starter-kit @tiptap/extension-link @tiptap/extension-image
  */
 
 'use client';
@@ -20,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -312,27 +309,21 @@ export default function AdminCreateBlogPostPage() {
             <CardHeader>
               <CardTitle>Contenuto</CardTitle>
               <CardDescription>
-                Contenuto HTML dell'articolo
-                <br />
-                <span className="text-xs text-yellow-600">
-                  TODO: Integrare TipTap rich text editor
-                </span>
+                Scrivi il contenuto dell'articolo con l'editor rich text
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div>
-                <Label htmlFor="content_html">Contenuto HTML *</Label>
-                <textarea
-                  id="content_html"
-                  value={formData.content_html}
-                  onChange={(e) => setFormData({ ...formData, content_html: e.target.value })}
-                  required
-                  rows={20}
-                  className="w-full px-3 py-2 border rounded-md font-mono text-sm"
-                  placeholder="<p>Scrivi il contenuto HTML qui...</p>"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Supporta HTML completo. Usa &lt;p&gt;, &lt;h2&gt;, &lt;ul&gt;, etc.
+                <Label htmlFor="content_html">Contenuto Articolo *</Label>
+                <div className="mt-2">
+                  <RichTextEditor
+                    content={formData.content_html}
+                    onChange={(html) => setFormData({ ...formData, content_html: html })}
+                    placeholder="Inizia a scrivere il tuo articolo..."
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Usa la toolbar per formattare il testo: grassetto, corsivo, titoli, liste, link e immagini
                 </p>
               </div>
             </CardContent>
