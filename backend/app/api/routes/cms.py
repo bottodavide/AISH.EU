@@ -69,7 +69,7 @@ from app.models.cms import (
     BlogPost,
     BlogTag,
     Page,
-    PageStatus,
+    ContentStatus,
     blog_post_tags,
 )
 from app.models.user import User
@@ -354,7 +354,7 @@ async def create_page(
         meta_keywords=page_data.meta_keywords,
         og_image_url=str(page_data.og_image_url) if page_data.og_image_url else None,
         is_published=page_data.is_published,
-        status=PageStatus.PUBLISHED if page_data.is_published else PageStatus.DRAFT,
+        status=ContentStatus.PUBLISHED if page_data.is_published else ContentStatus.DRAFT,
         published_at=datetime.now(timezone.utc) if page_data.is_published else None,
     )
 
@@ -433,11 +433,11 @@ async def update_page(
     if page_data.is_published is not None:
         if page_data.is_published and not page.is_published:
             # Publishing
-            page.status = PageStatus.PUBLISHED
+            page.status = ContentStatus.PUBLISHED
             page.published_at = datetime.now(timezone.utc)
         elif not page_data.is_published and page.is_published:
             # Unpublishing
-            page.status = PageStatus.DRAFT
+            page.status = ContentStatus.DRAFT
             page.published_at = None
 
     # Audit log
@@ -533,13 +533,13 @@ async def toggle_publish_page(
     if publish_data.publish:
         # Publish
         page.is_published = True
-        page.status = PageStatus.PUBLISHED
+        page.status = ContentStatus.PUBLISHED
         page.published_at = datetime.now(timezone.utc)
         action_type = "published"
     else:
         # Unpublish
         page.is_published = False
-        page.status = PageStatus.DRAFT
+        page.status = ContentStatus.DRAFT
         page.published_at = None
         action_type = "unpublished"
 
