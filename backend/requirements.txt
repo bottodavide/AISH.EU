@@ -53,9 +53,10 @@ aiohttp==3.9.1  # Async HTTP client
 stripe==7.11.0
 
 # -----------------------------------------------------------------------------
-# Claude API (Anthropic)
+# AI APIs
 # -----------------------------------------------------------------------------
-anthropic==0.12.0
+anthropic==0.12.0  # Claude API
+openai==1.12.0  # OpenAI API (for embeddings)
 
 # -----------------------------------------------------------------------------
 # Fatturazione Elettronica Italia

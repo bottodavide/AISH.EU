@@ -25,7 +25,7 @@ from app.core.exceptions import (
 )
 
 # Import routers
-from app.api.routes import auth, cms, files, invoices, orders, services, users
+from app.api.routes import auth, chat, cms, files, invoices, knowledge_base, orders, services, users
 
 # Setup logging configurazione
 setup_logging()
@@ -160,9 +160,10 @@ app.include_router(orders.router)  # Orders router già include prefix /api/v1
 app.include_router(files.router)  # Files router già include prefix /api/v1
 app.include_router(invoices.router)  # Invoices router già include prefix /api/v1
 app.include_router(cms.router, prefix=API_V1_PREFIX, tags=["CMS"])  # ✅ CMS Headless completo
+app.include_router(chat.router, prefix=API_V1_PREFIX, tags=["Chat"])  # ✅ AI Chatbot & RAG
+app.include_router(knowledge_base.router, prefix=API_V1_PREFIX, tags=["Knowledge Base"])  # ✅ Knowledge Base Management
 
 # TODO: Registra altri routers:
-# - Chat/AI (/api/v1/chat) - AI Chatbot & RAG
 # - Webhooks (/api/v1/webhooks) - Stripe webhooks
 # - Support (/api/v1/support) - Support tickets
 # - Notifications (/api/v1/notifications) - In-app notifications
