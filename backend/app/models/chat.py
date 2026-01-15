@@ -6,7 +6,7 @@ Data: 2026-01-15
 """
 
 import logging
-from sqlalchemy import Column, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -37,7 +37,7 @@ class ChatConversation(Base, UUIDMixin, TimestampMixin):
     session_id = Column(String(255), nullable=False, index=True, comment="Browser session tracking")
     total_messages = Column(Integer, nullable=False, default=0)
     user_feedback = Column(Enum(UserFeedback), nullable=True, default=UserFeedback.NONE)
-    ended_at = Column(TimestampMixin.created_at.__class__, nullable=True)
+    ended_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User")
     messages = relationship("ChatMessage", back_populates="conversation", cascade="all, delete-orphan", order_by="ChatMessage.created_at")

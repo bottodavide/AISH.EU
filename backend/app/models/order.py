@@ -651,7 +651,7 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     # Metadata
     # -------------------------------------------------------------------------
 
-    metadata = Column(
+    payment_metadata = Column(
         JSONB,
         nullable=True,
         comment="Metadata Stripe e custom",

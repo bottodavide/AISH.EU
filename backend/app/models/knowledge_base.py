@@ -81,7 +81,7 @@ class KnowledgeBaseChunk(Base, UUIDMixin, TimestampMixin):
     )
 
     token_count = Column(Integer, nullable=True, comment="Numero token nel chunk")
-    metadata = Column(JSONB, nullable=True, comment="Metadata aggiuntivi (page_number, section, etc.)")
+    chunk_metadata = Column(JSONB, nullable=True, comment="Metadata aggiuntivi (page_number, section, etc.)")
 
     document = relationship("KnowledgeBaseDocument", back_populates="chunks")
 

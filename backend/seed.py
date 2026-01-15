@@ -41,7 +41,7 @@ from app.core.config import settings
 from app.models.base import Base
 from app.models.user import User, UserProfile, UserRole
 from app.models.service import Service, ServiceCategory, ServiceContent, ServiceFAQ, PricingType
-from app.models.order import Order, OrderItem, OrderStatus, QuoteRequest, QuoteStatus, Payment, PaymentStatus, PaymentMethod
+from app.models.order import Order, OrderItem, OrderStatus, QuoteRequest, QuoteRequestStatus, Payment, PaymentStatus
 from app.models.invoice import Invoice, InvoiceLine, SDIStatus
 from app.models.cms import Page, BlogPost, BlogCategory, BlogTag, BlogPostTag
 from app.models.newsletter import NewsletterSubscriber, SubscriberStatus, EmailCampaign, CampaignStatus
@@ -110,11 +110,13 @@ def seed_users(session: Session) -> dict:
         company_name="AI Strategy Hub",
         phone="+39 123 456 7890",
         vat_number="IT12345678901",
-        address_street="Via Roma 1",
-        address_city="Milano",
-        address_state="MI",
-        address_postal_code="20100",
-        address_country="IT",
+        billing_address={
+            "street": "Via Roma 1",
+            "city": "Milano",
+            "province": "MI",
+            "zip": "20100",
+            "country": "IT"
+        },
     )
     session.add(super_admin_profile)
     users['super_admin'] = super_admin
@@ -182,13 +184,15 @@ def seed_users(session: Session) -> dict:
         company_name="Verdi S.r.l.",
         phone="+39 345 678 9012",
         vat_number="IT98765432109",
-        tax_code="VRDMRA80A01H501Z",
+        fiscal_code="VRDMRA80A01H501Z",
         sdi_code="ABCDEFG",
-        address_street="Corso Italia 45",
-        address_city="Roma",
-        address_state="RM",
-        address_postal_code="00100",
-        address_country="IT",
+        billing_address={
+            "street": "Corso Italia 45",
+            "city": "Roma",
+            "province": "RM",
+            "zip": "00100",
+            "country": "IT"
+        },
     )
     session.add(customer1_profile)
     users['customer1'] = customer1
@@ -210,13 +214,15 @@ def seed_users(session: Session) -> dict:
         first_name="Giulia",
         last_name="Neri",
         phone="+39 347 890 1234",
-        tax_code="NREGLI85M50F205X",
+        fiscal_code="NREGLI85M50F205X",
         pec_email="giulia.neri@pec.it",
-        address_street="Via Garibaldi 12",
-        address_city="Torino",
-        address_state="TO",
-        address_postal_code="10100",
-        address_country="IT",
+        billing_address={
+            "street": "Via Garibaldi 12",
+            "city": "Torino",
+            "province": "TO",
+            "zip": "10100",
+            "country": "IT"
+        },
     )
     session.add(customer2_profile)
     users['customer2'] = customer2
@@ -269,8 +275,8 @@ def seed_services(session: Session, users: dict) -> List[Service]:
     logger.info("Creating AI compliance services...")
     ai_service = Service(
         slug="consulenza-ai-act-compliance",
-        title="Consulenza AI Act Compliance",
-        subtitle="Supporto completo per conformità al Regolamento UE sull'Intelligenza Artificiale",
+        name="Consulenza AI Act Compliance",
+        short_description="Supporto completo per conformità al Regolamento UE sull'Intelligenza Artificiale",
         category=ServiceCategory.AI_COMPLIANCE,
         pricing_type=PricingType.CUSTOM,
         base_price=None,
@@ -333,8 +339,8 @@ Offriamo un approccio completo che include:
     logger.info("Creating cybersecurity NIS2 services...")
     nis2_service = Service(
         slug="consulenza-nis2-cybersecurity",
-        title="Consulenza NIS2 Cybersecurity",
-        subtitle="Conformità alla Direttiva NIS2 per operatori di servizi essenziali",
+        name="Consulenza NIS2 Cybersecurity",
+        short_description="Conformità alla Direttiva NIS2 per operatori di servizi essenziali",
         category=ServiceCategory.CYBERSECURITY_NIS2,
         pricing_type=PricingType.CUSTOM,
         base_price=None,
@@ -372,8 +378,8 @@ Il nostro servizio include:
     logger.info("Creating toolkit and training services...")
     toolkit_service = Service(
         slug="toolkit-gdpr-cybersecurity",
-        title="Toolkit GDPR & Cybersecurity",
-        subtitle="Documenti e template pronti all'uso per compliance",
+        name="Toolkit GDPR & Cybersecurity",
+        short_description="Documenti e template pronti all'uso per compliance",
         category=ServiceCategory.TOOLKIT_FORMAZIONE,
         pricing_type=PricingType.FIXED,
         base_price=Decimal("497.00"),
@@ -414,8 +420,8 @@ Tutti i documenti sono personalizzabili e conformi alle normative vigenti.
     logger.info("Creating hourly consulting service...")
     hourly_service = Service(
         slug="consulenza-oraria-cybersecurity",
-        title="Consulenza Oraria Cybersecurity",
-        subtitle="Supporto flessibile on-demand",
+        name="Consulenza Oraria Cybersecurity",
+        short_description="Supporto flessibile on-demand",
         category=ServiceCategory.CYBERSECURITY_NIS2,
         pricing_type=PricingType.HOURLY,
         base_price=Decimal("150.00"),
@@ -493,7 +499,7 @@ def seed_orders(session: Session, users: dict, services: List[Service]) -> List[
         order_id=order1.id,
         amount=Decimal("606.34"),
         currency="EUR",
-        payment_method=PaymentMethod.STRIPE,
+        payment_method_type="card",
         status=PaymentStatus.SUCCEEDED,
         stripe_payment_intent_id="pi_test_123456",
         paid_at=datetime.now() - timedelta(days=5),
@@ -544,7 +550,7 @@ def seed_orders(session: Session, users: dict, services: List[Service]) -> List[
         order_id=order2.id,
         amount=Decimal("1830.00"),
         currency="EUR",
-        payment_method=PaymentMethod.STRIPE,
+        payment_method_type="card",
         status=PaymentStatus.PENDING,
     )
     session.add(payment2)
@@ -564,7 +570,7 @@ def seed_orders(session: Session, users: dict, services: List[Service]) -> List[
             "ai_systems": 2,
             "timeline": "3 mesi"
         },
-        status=QuoteStatus.QUOTED,
+        status=QuoteRequestStatus.QUOTED,
         admin_notes="Cliente interessato, follow-up previsto la prossima settimana",
         quoted_price=Decimal("8500.00"),
         quote_sent_at=datetime.now() - timedelta(days=2),
