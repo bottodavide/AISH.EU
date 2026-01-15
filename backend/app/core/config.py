@@ -126,12 +126,19 @@ class Settings(BaseSettings):
     STRIPE_CANCEL_URL: str = "https://aistrategyhub.eu/checkout/cancel"
 
     # =========================================================================
-    # CLAUDE API (Anthropic)
+    # AI APIs - Claude & OpenAI
     # =========================================================================
-    ANTHROPIC_API_KEY: Optional[str] = None
+    # Claude API (Anthropic) - For chatbot
+    CLAUDE_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None  # Alias for compatibility
     CLAUDE_MODEL: str = "claude-sonnet-4-5-20250929"
     CLAUDE_MAX_TOKENS: int = 4096
     CLAUDE_TEMPERATURE: float = 0.7
+
+    # OpenAI API - For embeddings
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    OPENAI_EMBEDDING_DIMENSION: int = 1536
 
     # RAG Settings
     RAG_CHUNK_SIZE: int = 1000
