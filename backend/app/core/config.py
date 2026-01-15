@@ -90,6 +90,22 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Alias per compatibility con security.py
+    @property
+    def ALGORITHM(self) -> str:
+        """Alias per JWT_ALGORITHM"""
+        return self.JWT_ALGORITHM
+
+    @property
+    def ACCESS_TOKEN_EXPIRE_MINUTES(self) -> int:
+        """Alias per JWT_ACCESS_TOKEN_EXPIRE_MINUTES"""
+        return self.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+
+    @property
+    def REFRESH_TOKEN_EXPIRE_DAYS(self) -> int:
+        """Alias per JWT_REFRESH_TOKEN_EXPIRE_DAYS"""
+        return self.JWT_REFRESH_TOKEN_EXPIRE_DAYS
+
     # =========================================================================
     # MICROSOFT GRAPH API (Email)
     # =========================================================================
