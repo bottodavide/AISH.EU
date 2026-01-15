@@ -1,7 +1,63 @@
 # TODO & TASK TRACKING
 
 **Progetto**: Sito Web Consulenza E-Commerce  
-**Ultimo Update**: 2026-01-15
+**Ultimo Update**: 2026-01-15 (Sera - Post Code Review)
+
+---
+
+## 📊 STATO PROGETTO (Aggiornato)
+
+**Completamento Complessivo**: 35-40%
+
+- ✅ Backend Core: 85% (Auth, Users, Services, Orders, Invoices, Files)
+- ⚠️ Backend Advanced: 5% (AI, CMS, Workers mancanti)
+- ⚠️ Frontend: 5% (solo setup base)
+- ⚠️ DevOps: 60% (config pronte, CI/CD mancante)
+- ❌ Testing: 0%
+
+**Ultimo Commit**: 920dfc9 - Fix SQLAlchemy metadata conflicts
+
+---
+
+## 🔥 PRIORITÀ IMMEDIATE (Prossime Sessioni)
+
+### 1. Stripe Webhook Handler (CRITICO)
+- [ ] Implementare POST /webhooks/stripe
+- [ ] Signature verification
+- [ ] Event processing (payment_intent.succeeded)
+- [ ] Update order status
+- [ ] Idempotency handling
+- **Blocca**: Pagamenti funzionanti
+- **Tempo stimato**: 4-6 ore
+
+### 2. AI Chatbot & RAG System (CORE FEATURE)
+- [ ] Claude API service wrapper
+- [ ] RAG pipeline con pgvector
+- [ ] Knowledge base upload/processing
+- [ ] Vector embeddings generation
+- [ ] Similarity search implementation
+- [ ] Guardrails system
+- [ ] Chat API endpoints
+- **Blocca**: Funzionalità differenziante del prodotto
+- **Tempo stimato**: 2-3 giorni
+
+### 3. CMS Headless Backend (CONTENT MANAGEMENT)
+- [ ] CMS API routes (pages, blog, media)
+- [ ] Page CRUD completo
+- [ ] Blog CRUD completo
+- [ ] Media library management
+- [ ] Publishing workflow
+- [ ] SEO metadata handling
+- **Blocca**: Gestione contenuti frontend
+- **Tempo stimato**: 2-3 giorni
+
+### 4. Frontend Auth Pages (USER FLOWS)
+- [ ] Login page + MFA flow
+- [ ] Register page + email verification
+- [ ] Password reset flow
+- [ ] Auth context/state management
+- **Blocca**: Tutto il resto del frontend
+- **Tempo stimato**: 1-2 giorni
 
 ---
 
