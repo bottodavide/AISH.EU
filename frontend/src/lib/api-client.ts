@@ -240,6 +240,7 @@ class ApiClient {
 const apiClient = new ApiClient();
 
 export default apiClient;
+export { apiClient }; // Named export for convenience
 
 // =============================================================================
 // ERROR HANDLER HELPER
