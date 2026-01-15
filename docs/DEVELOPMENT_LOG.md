@@ -1104,7 +1104,236 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 ---
 
-**ULTIMO UPDATE**: 2026-01-15 (Notte - Fase 3)
-**STATO**: Admin CRUD interfaces complete ✅, TipTap integration next
-**PROSSIMO MILESTONE**: TipTap editor + AI Chatbot + Stripe Webhook
-**COMPLETAMENTO**: 80%
+### 2026-01-15 (Notte - Fase 4) - TipTap Rich Text Editor Integration
+
+#### TipTap WYSIWYG Editor Implementato
+
+**Commit Hash**: a8f15e5
+
+**Files Creati/Modificati**:
+- `frontend/src/components/RichTextEditor.tsx` (320 righe) - Nuovo componente
+- `frontend/src/app/admin/blog/new/page.tsx` - Integrato editor
+- `frontend/package.json` - Aggiunte dipendenze TipTap
+- `frontend/package-lock.json` - Lock file con 875 nuovi packages
+
+**Packages Installati**:
+- `@tiptap/react` - React bindings per TipTap
+- `@tiptap/starter-kit` - Set base di estensioni
+- `@tiptap/extension-link` - Supporto link
+- `@tiptap/extension-image` - Supporto immagini
+
+#### RichTextEditor Component Features
+
+**Toolbar Completa**:
+
+1. **Text Formatting**:
+   - Bold (Grassetto) - Ctrl+B
+   - Italic (Corsivo) - Ctrl+I
+   - Strike (Barrato)
+   - Code inline (Codice)
+
+2. **Headings**:
+   - H1, H2, H3 buttons
+   - Active state highlighting
+
+3. **Lists & Blocks**:
+   - Bullet list (Lista puntata)
+   - Ordered list (Lista numerata)
+   - Code block (Blocco codice)
+   - Blockquote (Citazione)
+
+4. **Media**:
+   - Link insertion con prompt URL
+   - Unset link per rimuovere
+   - Image insertion con prompt URL
+
+5. **Formatting**:
+   - Horizontal rule (Linea orizzontale)
+   - Hard break (A capo forzato)
+   - Clear formatting (Rimuovi formattazione)
+
+6. **History**:
+   - Undo (Annulla) - Ctrl+Z
+   - Redo (Ripeti) - Ctrl+Y
+   - Disabled state quando non disponibile
+
+**UI/UX Features**:
+- Toolbar con bg-muted e separatori visuali
+- Button active state (bg-background quando attivo)
+- Hover effects su tutti i bottoni
+- Tooltips con shortcuts keyboard
+- Emoji icons per link/image
+- Toolbar responsive con flex-wrap
+
+**Editor Features**:
+- Prose typography styling (TailwindCSS)
+- Min height 300px per editing comodo
+- Focus outline removal per clean look
+- Controlled component (React controlled)
+- onChange callback con HTML output
+- useEffect sync per form reset
+
+**Footer Stats**:
+- Character count display
+- Word count display
+- Bg-muted con testo muted-foreground
+
+#### Integration in Blog Post Form
+
+**Modifiche a `/admin/blog/new`**:
+
+1. **Import Statement**:
+```typescript
+import { RichTextEditor } from '@/components/RichTextEditor';
+```
+
+2. **Component Usage**:
+```tsx
+<RichTextEditor
+  content={formData.content_html}
+  onChange={(html) => setFormData({ ...formData, content_html: html })}
+  placeholder="Inizia a scrivere il tuo articolo..."
+/>
+```
+
+3. **Removed**:
+- TODO comments about TipTap integration
+- textarea HTML con 20 rows
+- Font-mono styling
+- Manual HTML placeholder
+
+4. **Updated**:
+- CardDescription text (rimosso warning TODO)
+- Help text sotto editor
+- Label text più user-friendly
+
+#### Technical Implementation
+
+**Controlled Component Pattern**:
+- Props: `content: string`, `onChange: (html: string) => void`
+- useEditor hook con onUpdate callback
+- useEffect per sync content changes (form reset)
+- getHTML() per output HTML pulito
+
+**Extensions Configuration**:
+```typescript
+StarterKit.configure({
+  heading: { levels: [1, 2, 3, 4] }
+})
+Link.configure({
+  openOnClick: false,
+  HTMLAttributes: { class: 'text-primary underline' }
+})
+Image.configure({
+  HTMLAttributes: { class: 'max-w-full h-auto rounded-lg' }
+})
+```
+
+**Styling Approach**:
+- TailwindCSS utility classes
+- Prose plugin per typography
+- Conditional classes per active states
+- Responsive toolbar (wrap su mobile)
+- Button hover/focus states
+
+#### Benefits
+
+**For Content Creators**:
+- WYSIWYG editing (What You See Is What You Get)
+- No HTML knowledge required
+- Familiar word processor UX
+- Live preview of formatting
+- Keyboard shortcuts support
+- Visual feedback (active states)
+
+**For Developers**:
+- Clean HTML output
+- Easy to extend (TipTap extensible)
+- React-friendly (hooks-based)
+- Type-safe (TypeScript)
+- Well-documented library
+
+**For Users (Blog Readers)**:
+- Consistent formatting
+- Semantic HTML output
+- Accessible content structure
+- Proper heading hierarchy
+
+#### Known Limitations & Future Enhancements
+
+**Current Limitations**:
+1. Image insertion via URL prompt (no file upload yet)
+2. Link insertion via prompt (no inline link dialog)
+3. No table support (can be added)
+4. No text color/highlight (can be added)
+5. No emoji picker (can be added)
+
+**Future Enhancements TODO**:
+- [ ] File upload integration per immagini
+- [ ] Link dialog component (invece di prompt)
+- [ ] Table extension
+- [ ] Text color & highlight
+- [ ] Emoji picker
+- [ ] Markdown import/export
+- [ ] Full-screen mode toggle
+- [ ] HTML source view toggle
+
+#### Progress Update
+
+**Frontend Status**: 98% completo (era 95%)
+- Admin CRUD UIs: **100%** ✅ (era 95%)
+- Rich text editor: **100%** ✅ (era 0%)
+
+**Backend Status**: 90% completo (nessun cambiamento)
+
+**Totale Progetto**: 82% completo (era 80%)
+
+**Lines of Code Totali**: ~17,500 backend + ~9,100 frontend = ~26,600 totale
+
+#### Prossimi Step Immediate
+
+1. **AI Chatbot & RAG** (2-3 giorni) - **PRIORITÀ MASSIMA**
+   - Claude API integration
+   - RAG pipeline con pgvector
+   - Chat widget UI
+   - Knowledge base management
+
+2. **Stripe Webhook** (4-6 ore) - **CRITICO**
+   - Payment processing automation
+   - Order status updates
+   - Idempotency handling
+
+3. **Testing** (ongoing)
+   - E2E tests blog post creation
+   - TipTap editor functionality tests
+   - API integration tests
+
+#### Note Tecniche
+
+**TipTap Version**: 2.27.2
+- Stable release, production-ready
+- Large ecosystem di extensions
+- Active development e community
+
+**Bundle Size Impact**:
+- +875 packages installati
+- TipTap core + extensions ~100KB gzipped
+- Acceptable per admin interface
+- Lazy-loadable se necessario
+
+**Browser Compatibility**:
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Requires JavaScript enabled
+- Graceful degradation non implementata (admin-only)
+
+**Performance**:
+- No lag notato in testing
+- Handles long documents well
+- Debounce onChange possibile se needed
+
+---
+
+**ULTIMO UPDATE**: 2026-01-15 (Notte - Fase 4)
+**STATO**: TipTap editor integrated ✅, AI Chatbot next
+**PROSSIMO MILESTONE**: AI Chatbot & RAG + Stripe Webhook
+**COMPLETAMENTO**: 82%
