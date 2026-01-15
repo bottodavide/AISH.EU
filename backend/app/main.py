@@ -25,7 +25,7 @@ from app.core.exceptions import (
 )
 
 # Import routers
-from app.api.routes import auth, files, orders, services, users
+from app.api.routes import auth, files, invoices, orders, services, users
 
 # Setup logging configurazione
 setup_logging()
@@ -158,9 +158,9 @@ app.include_router(users.router, prefix=API_V1_PREFIX, tags=["Users"])
 app.include_router(services.router, prefix=API_V1_PREFIX, tags=["Services"])
 app.include_router(orders.router)  # Orders router già include prefix /api/v1
 app.include_router(files.router)  # Files router già include prefix /api/v1
+app.include_router(invoices.router)  # Invoices router già include prefix /api/v1
 
 # TODO: Registra altri routers:
-# - Invoices (/api/v1/invoices)
 # - CMS (/api/v1/cms)
 # - Chat/AI (/api/v1/chat)
 # - Webhooks (/api/v1/webhooks)

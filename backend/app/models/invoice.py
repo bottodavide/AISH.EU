@@ -294,19 +294,47 @@ class Invoice(Base, UUIDMixin, TimestampMixin):
     )
 
     # -------------------------------------------------------------------------
+    # Status Fattura
+    # -------------------------------------------------------------------------
+
+    status = Column(
+        Enum(InvoiceStatus),
+        nullable=False,
+        default=InvoiceStatus.DRAFT,
+        index=True,
+        comment="Status fattura nel workflow",
+    )
+
+    # -------------------------------------------------------------------------
     # File Generati
     # -------------------------------------------------------------------------
+
+    pdf_file_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("files.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="FK a files (PDF fattura)",
+    )
+
+    xml_file_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("files.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="FK a files (XML PA per SDI)",
+    )
 
     pdf_url = Column(
         String(500),
         nullable=True,
-        comment="URL file PDF per cliente",
+        comment="URL file PDF per cliente (legacy/deprecated)",
     )
 
     xml_url = Column(
         String(500),
         nullable=True,
-        comment="URL file XML PA (per SDI)",
+        comment="URL file XML PA (legacy/deprecated)",
     )
 
     xml_signed_url = Column(
@@ -382,6 +410,9 @@ class Invoice(Base, UUIDMixin, TimestampMixin):
         order_by="InvoiceLine.line_number",
     )
 
+    pdf_file = relationship("File", foreign_keys=[pdf_file_id])
+    xml_file = relationship("File", foreign_keys=[xml_file_id])
+
     # -------------------------------------------------------------------------
     # Indexes
     # -------------------------------------------------------------------------
@@ -390,6 +421,7 @@ class Invoice(Base, UUIDMixin, TimestampMixin):
         Index("ix_invoices_year_progressive", "invoice_year", "invoice_progressive", unique=True),
         Index("ix_invoices_user_year", "user_id", "invoice_year"),
         Index("ix_invoices_issue_date", "issue_date"),
+        Index("ix_invoices_status", "status"),
         Index("ix_invoices_sdi_status", "sdi_status"),
         {"comment": "Fatture elettroniche italiane (XML PA)"},
     )
