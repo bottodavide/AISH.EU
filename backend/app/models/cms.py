@@ -88,6 +88,8 @@ class BlogPost(Base, UUIDMixin, TimestampMixin):
     view_count = Column(Integer, nullable=False, default=0)
     seo_title = Column(String(255), nullable=True)
     seo_description = Column(Text, nullable=True)
+    newsletter_sent = Column(Boolean, nullable=False, default=False, comment="True se l'articolo è stato inviato via newsletter")
+    newsletter_sent_at = Column(DateTime(timezone=True), nullable=True, comment="Data invio newsletter")
 
     author = relationship("User")
     category = relationship("BlogCategory")

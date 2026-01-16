@@ -31,6 +31,7 @@ BLOG POSTS:
 - PUT    /api/v1/cms/blog/posts/{id} - Aggiorna post
 - DELETE /api/v1/cms/blog/posts/{id} - Elimina post
 - POST   /api/v1/cms/blog/posts/{id}/publish - Pubblica/Unpublish
+- POST   /api/v1/cms/blog/posts/{id}/send-newsletter - Invia articolo via newsletter
 
 MEDIA:
 - GET    /api/v1/cms/media - Lista media files (usa /files endpoint esistente)
@@ -56,6 +57,7 @@ from app.core.database import get_async_db
 from app.core.dependencies import (
     get_current_active_user,
     get_current_user_optional,
+    require_admin,
     require_admin_or_editor,
 )
 from app.core.exceptions import (
@@ -1445,3 +1447,151 @@ async def toggle_publish_blog_post(
     logger.info(f"Blog post {action_type}: {post.id}")
 
     return BlogPostResponse.model_validate(post)
+
+
+@router.post("/blog/posts/{post_id}/send-newsletter")
+async def send_blog_post_newsletter(
+    post_id: UUID,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+) -> dict:
+    """
+    Invia articolo blog come newsletter a tutti gli iscritti attivi.
+
+    **Richiede**: Admin
+
+    Args:
+        post_id: ID post da inviare
+        current_user: Utente corrente
+        db: Database session
+
+    Returns:
+        dict: Statistiche invio (totale iscritti, email inviate, errori)
+
+    Raises:
+        ResourceNotFoundError: Se post non trovato
+        ValidationError: Se post non pubblicato o già inviato
+    """
+    from app.models.newsletter import NewsletterSubscriber, SubscriberStatus
+    from app.services.ms_graph import ms_graph_service
+    from app.services.email_templates import blog_post_newsletter_template
+
+    logger.info(f"Admin {current_user.email} sending newsletter for blog post {post_id}")
+
+    # 1. Recupera il post
+    post = await get_blog_post_or_404(db, post_id)
+
+    # 2. Verifica che sia pubblicato
+    if post.status != ContentStatus.PUBLISHED:
+        raise ValidationError(
+            message="L'articolo deve essere pubblicato prima di inviare la newsletter",
+            details={"status": post.status.value},
+        )
+
+    # 3. Verifica se già inviato
+    if post.newsletter_sent:
+        logger.warning(f"Newsletter already sent for post {post_id} at {post.newsletter_sent_at}")
+        raise ValidationError(
+            message="Newsletter già inviata per questo articolo",
+            details={
+                "newsletter_sent_at": post.newsletter_sent_at.isoformat() if post.newsletter_sent_at else None
+            },
+        )
+
+    # 4. Recupera tutti gli iscritti ATTIVI
+    stmt = select(NewsletterSubscriber).where(
+        NewsletterSubscriber.status == SubscriberStatus.ACTIVE
+    )
+    result = await db.execute(stmt)
+    subscribers = result.scalars().all()
+
+    total_subscribers = len(subscribers)
+    logger.info(f"Found {total_subscribers} active newsletter subscribers")
+
+    if total_subscribers == 0:
+        logger.warning("No active subscribers found")
+        return {
+            "success": False,
+            "message": "Nessun iscritto attivo trovato",
+            "stats": {
+                "total_subscribers": 0,
+                "emails_sent": 0,
+                "errors": 0,
+            },
+        }
+
+    # 5. Prepara dati per template email
+    post_url = f"https://aistrategyhub.eu/blog/{post.slug}"
+    author_name = post.author.email if post.author else "AI Strategy Hub"
+    category_name = post.category.name if post.category else None
+
+    # Genera template HTML
+    html_body, plain_text_body = blog_post_newsletter_template(
+        post_title=post.title,
+        post_excerpt=post.excerpt or "",
+        post_content=post.content,
+        post_url=post_url,
+        author_name=author_name,
+        category_name=category_name,
+        featured_image=post.featured_image,
+        published_at=post.published_at,
+    )
+
+    # 6. Invia email a tutti gli iscritti
+    emails_sent = 0
+    errors = 0
+
+    for subscriber in subscribers:
+        try:
+            success = ms_graph_service.send_email(
+                to=subscriber.email,
+                subject=f"Nuovo articolo: {post.title}",
+                body_html=html_body,
+            )
+
+            if success:
+                emails_sent += 1
+                logger.debug(f"Newsletter sent to {subscriber.email}")
+            else:
+                errors += 1
+                logger.warning(f"Failed to send newsletter to {subscriber.email}")
+
+        except Exception as e:
+            errors += 1
+            logger.error(f"Error sending newsletter to {subscriber.email}: {str(e)}")
+
+    # 7. Aggiorna post: marca come inviato
+    post.newsletter_sent = True
+    post.newsletter_sent_at = datetime.now(timezone.utc)
+
+    # 8. Audit log
+    await create_audit_log(
+        db=db,
+        user_id=current_user.id,
+        action=AuditAction.UPDATE,
+        entity_type="blog_post",
+        entity_id=post.id,
+        changes={
+            "action": "send_newsletter",
+            "subscribers": total_subscribers,
+            "sent": emails_sent,
+            "errors": errors,
+        },
+    )
+
+    await db.commit()
+
+    logger.info(
+        f"Newsletter sent for post {post_id}: {emails_sent}/{total_subscribers} emails sent, {errors} errors"
+    )
+
+    return {
+        "success": True,
+        "message": f"Newsletter inviata con successo",
+        "stats": {
+            "total_subscribers": total_subscribers,
+            "emails_sent": emails_sent,
+            "errors": errors,
+            "success_rate": round((emails_sent / total_subscribers) * 100, 2) if total_subscribers > 0 else 0,
+        },
+    }

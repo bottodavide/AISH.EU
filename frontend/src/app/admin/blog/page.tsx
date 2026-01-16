@@ -35,6 +35,8 @@ interface BlogPost {
   published_at?: string;
   is_featured: boolean;
   is_published: boolean;
+  newsletter_sent?: boolean;
+  newsletter_sent_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -122,6 +124,48 @@ export default function AdminBlogPage() {
       await apiClient.post(`/cms/blog/posts/${postId}/publish`);
       await loadPosts();
     } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const handleSendNewsletter = async (post: BlogPost) => {
+    if (!post.is_published) {
+      alert('L\'articolo deve essere pubblicato prima di inviare la newsletter');
+      return;
+    }
+
+    if (post.newsletter_sent) {
+      const sentDate = post.newsletter_sent_at
+        ? formatDate(post.newsletter_sent_at)
+        : 'data sconosciuta';
+      if (!confirm(`Newsletter già inviata il ${sentDate}. Vuoi reinviare comunque?`)) {
+        return;
+      }
+    }
+
+    if (!confirm(`Inviare l'articolo "${post.title}" a tutti gli iscritti alla newsletter?`)) {
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(`/cms/blog/posts/${post.id}/send-newsletter`);
+
+      if (response.success) {
+        const stats = response.stats;
+        alert(
+          `Newsletter inviata con successo!\n\n` +
+          `Iscritti totali: ${stats.total_subscribers}\n` +
+          `Email inviate: ${stats.emails_sent}\n` +
+          `Errori: ${stats.errors}\n` +
+          `Tasso di successo: ${stats.success_rate}%`
+        );
+        await loadPosts();
+      } else {
+        alert('Errore nell\'invio della newsletter: ' + response.message);
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || getErrorMessage(err);
+      alert('Errore nell\'invio della newsletter: ' + errorMessage);
       setError(getErrorMessage(err));
     }
   };
@@ -274,6 +318,20 @@ export default function AdminBlogPage() {
                               >
                                 {post.is_published ? 'Nascondi' : 'Pubblica'}
                               </Button>
+                              {post.is_published && (
+                                <Button
+                                  variant={post.newsletter_sent ? 'secondary' : 'default'}
+                                  size="sm"
+                                  onClick={() => handleSendNewsletter(post)}
+                                  title={
+                                    post.newsletter_sent
+                                      ? 'Newsletter già inviata - clicca per reinviare'
+                                      : 'Invia articolo via newsletter'
+                                  }
+                                >
+                                  {post.newsletter_sent ? '📧 Reinvia Newsletter' : '📧 Invia Newsletter'}
+                                </Button>
+                              )}
                               <Button
                                 variant="destructive"
                                 size="sm"
