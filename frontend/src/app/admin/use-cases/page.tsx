@@ -1,10 +1,3 @@
-/**
- * Admin Use Cases Management Page
- * Descrizione: Gestione casi d'uso / success stories
- * Autore: Claude per Davide
- * Data: 2026-01-16
- */
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -69,7 +62,7 @@ export default function AdminUseCasesPage() {
       }
 
       const response = await apiClient.get<UseCasesResponse>(
-        `/use-cases/admin/all?${params.toString()}`
+        '/use-cases/admin/all?' + params.toString()
       );
 
       setUseCases(response.use_cases);
@@ -82,12 +75,13 @@ export default function AdminUseCasesPage() {
   };
 
   const handleToggleActive = async (useCase: UseCase) => {
-    if (!confirm(`Sei sicuro di voler ${useCase.is_active ? 'disattivare' : 'attivare'} questo caso d'uso?`)) {
+    const message = 'Sei sicuro di voler ' + (useCase.is_active ? 'disattivare' : 'attivare') + ' questo caso d\'uso?';
+    if (!confirm(message)) {
       return;
     }
 
     try {
-      await apiClient.put(`/use-cases/admin/${useCase.id}`, {
+      await apiClient.put('/use-cases/admin/' + useCase.id, {
         is_active: !useCase.is_active,
       });
       await loadUseCases();
@@ -97,12 +91,13 @@ export default function AdminUseCasesPage() {
   };
 
   const handleDelete = async (useCase: UseCase) => {
-    if (!confirm(`Sei sicuro di voler eliminare "${useCase.title}"? Questa azione non può essere annullata.`)) {
+    const message = 'Sei sicuro di voler eliminare "' + useCase.title + '"? Questa azione non può essere annullata.';
+    if (!confirm(message)) {
       return;
     }
 
     try {
-      await apiClient.delete(`/use-cases/admin/${useCase.id}`);
+      await apiClient.delete('/use-cases/admin/' + useCase.id);
       await loadUseCases();
     } catch (err) {
       alert(getErrorMessage(err));
@@ -113,7 +108,7 @@ export default function AdminUseCasesPage() {
     if (newOrder < 0) return;
 
     try {
-      await apiClient.patch(`/use-cases/admin/${useCase.id}/reorder?new_order=${newOrder}`);
+      await apiClient.patch('/use-cases/admin/' + useCase.id + '/reorder?new_order=' + newOrder);
       await loadUseCases();
     } catch (err) {
       alert(getErrorMessage(err));
@@ -126,7 +121,6 @@ export default function AdminUseCasesPage() {
 
       <main className="container py-12">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2">Casi d'Uso</h1>
@@ -142,14 +136,12 @@ export default function AdminUseCasesPage() {
             </Link>
           </div>
 
-          {/* Error Alert */}
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {/* Filters */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Filtri</CardTitle>
@@ -183,7 +175,6 @@ export default function AdminUseCasesPage() {
             </CardContent>
           </Card>
 
-          {/* Loading State */}
           {isLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -191,7 +182,6 @@ export default function AdminUseCasesPage() {
             </div>
           )}
 
-          {/* Use Cases List */}
           {!isLoading && useCases.length > 0 && (
             <>
               <div className="space-y-4">
@@ -215,7 +205,6 @@ export default function AdminUseCasesPage() {
                           </CardDescription>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
@@ -245,7 +234,7 @@ export default function AdminUseCasesPage() {
                               <Eye className="h-4 w-4" />
                             )}
                           </Button>
-                          <Link href={`/admin/use-cases/${useCase.id}/edit`}>
+                          <Link href={'/admin/use-cases/' + useCase.id + '/edit'}>
                             <Button variant="ghost" size="icon" title="Modifica">
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -289,7 +278,6 @@ export default function AdminUseCasesPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-6">
                   <Button
@@ -314,14 +302,13 @@ export default function AdminUseCasesPage() {
             </>
           )}
 
-          {/* Empty State */}
           {!isLoading && useCases.length === 0 && (
             <Card>
               <CardContent className="text-center py-12">
                 <p className="text-muted-foreground text-lg mb-4">
                   {filterIndustry
-                    ? `Nessun caso d'uso trovato per ${filterIndustry}`
-                    : 'Nessun caso d'uso creato'}
+                    ? 'Nessun caso d\'uso trovato per ' + filterIndustry
+                    : 'Nessun caso d\'uso creato'}
                 </p>
                 {!filterIndustry && (
                   <Link href="/admin/use-cases/new">
@@ -335,7 +322,6 @@ export default function AdminUseCasesPage() {
             </Card>
           )}
 
-          {/* Back Link */}
           <div className="mt-8">
             <Link href="/admin">
               <Button variant="ghost">← Torna alla Dashboard Admin</Button>
