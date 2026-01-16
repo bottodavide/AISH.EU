@@ -266,6 +266,14 @@ class Service(Base, UUIDMixin, TimestampMixin):
         order_by="ServiceImage.sort_order",
     )
 
+    # Many-to-Many con ConsultingPackage
+    packages = relationship(
+        "ConsultingPackage",
+        secondary="package_services",
+        back_populates="services",
+        lazy="selectin",
+    )
+
     # TODO: Aggiungere relationships con OrderItem, QuoteRequest
 
     # -------------------------------------------------------------------------

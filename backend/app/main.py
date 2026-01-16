@@ -38,6 +38,7 @@ from app.api.routes import (
     knowledge_base,
     newsletter,
     orders,
+    packages,
     services,
     users,
 )
@@ -182,6 +183,7 @@ app.include_router(newsletter.router, prefix=API_V1_PREFIX, tags=["Newsletter"])
 app.include_router(contact.router, prefix=API_V1_PREFIX, tags=["Contact"])  # ✅ Contact Form
 app.include_router(admin.router, prefix=API_V1_PREFIX, tags=["Admin"])  # ✅ Admin CMS & User Management
 app.include_router(homepage.router, prefix=API_V1_PREFIX, tags=["Homepage"])  # ✅ Homepage Banners & Content
+app.include_router(packages.router, prefix=API_V1_PREFIX, tags=["Packages"])  # ✅ Consulting Packages
 
 # TODO: Registra altri routers:
 # - Webhooks (/api/v1/webhooks) - Stripe webhooks

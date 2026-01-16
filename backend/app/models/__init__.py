@@ -4,6 +4,7 @@ Models package - Imports all models for Alembic auto-detection
 
 from app.models.base import Base
 from app.models.homepage import HomepageBanner
+from app.models.package import ConsultingPackage
 
 # Import tutti i modelli per alembic (senza esportarli in __all__)
 import app.models.user
@@ -19,4 +20,5 @@ import app.models.file
 __all__ = [
     "Base",
     "HomepageBanner",
+    "ConsultingPackage",
 ]
