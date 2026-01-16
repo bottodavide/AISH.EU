@@ -1,8 +1,8 @@
 /**
- * Admin Create Blog Post Page
- * Descrizione: Form per creare nuovo articolo blog con TipTap editor
+ * Admin Edit Blog Post Page
+ * Descrizione: Form per modificare articolo blog esistente
  * Autore: Claude per Davide
- * Data: 2026-01-15
+ * Data: 2026-01-16
  */
 
 'use client';
@@ -34,13 +34,36 @@ interface BlogTag {
   slug: string;
 }
 
-export default function AdminCreateBlogPostPage() {
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content_html: string;
+  featured_image_url?: string;
+  category: BlogCategory;
+  tags: BlogTag[];
+  author_name: string;
+  meta_description?: string;
+  meta_keywords?: string[];
+  is_featured: boolean;
+  status: 'DRAFT' | 'PUBLISHED';
+}
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function AdminEditBlogPostPage({ params }: PageProps) {
   const router = useRouter();
   const { user, isAuthenticated, isAdmin } = useAuth();
 
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [tags, setTags] = useState<BlogTag[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingPost, setIsLoadingPost] = useState(true);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -50,9 +73,7 @@ export default function AdminCreateBlogPostPage() {
     featured_image_url: '',
     category_id: '',
     tag_ids: [] as string[],
-    author_name: user?.first_name && user?.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user?.email || '',
+    author_name: '',
     meta_description: '',
     meta_keywords: '',
     is_featured: false,
@@ -62,12 +83,13 @@ export default function AdminCreateBlogPostPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load categories and tags
+  // Load post data and categories/tags
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       loadData();
+      loadPost();
     }
-  }, [isAuthenticated, isAdmin]);
+  }, [params.id, isAuthenticated, isAdmin]);
 
   const loadData = async () => {
     setIsLoadingData(true);
@@ -79,15 +101,38 @@ export default function AdminCreateBlogPostPage() {
 
       setCategories(categoriesRes.categories);
       setTags(tagsRes.tags);
-
-      // Auto-select first category if available
-      if (categoriesRes.categories.length > 0 && !formData.category_id) {
-        setFormData((prev) => ({ ...prev, category_id: categoriesRes.categories[0].id }));
-      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setIsLoadingData(false);
+    }
+  };
+
+  const loadPost = async () => {
+    setIsLoadingPost(true);
+    setError(null);
+
+    try {
+      const post = await apiClient.get<BlogPost>(`/api/v1/cms/blog/posts/${params.id}`);
+
+      setFormData({
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        content_html: post.content_html,
+        featured_image_url: post.featured_image_url || '',
+        category_id: post.category.id,
+        tag_ids: post.tags.map((tag) => tag.id),
+        author_name: post.author_name,
+        meta_description: post.meta_description || '',
+        meta_keywords: post.meta_keywords?.join(', ') || '',
+        is_featured: post.is_featured,
+        is_published: post.status === 'PUBLISHED',
+      });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoadingPost(false);
     }
   };
 
@@ -145,10 +190,10 @@ export default function AdminCreateBlogPostPage() {
         meta_description: formData.meta_description || undefined,
         meta_keywords: formData.meta_keywords ? formData.meta_keywords.split(',').map((k) => k.trim()) : undefined,
         is_featured: formData.is_featured,
-        is_published: formData.is_published,
+        status: formData.is_published ? 'PUBLISHED' : 'DRAFT',
       };
 
-      await apiClient.post('/api/v1/cms/blog/posts', payload);
+      await apiClient.put(`/api/v1/cms/blog/posts/${params.id}`, payload);
 
       // Redirect to blog list
       router.push('/admin/blog');
@@ -162,13 +207,16 @@ export default function AdminCreateBlogPostPage() {
     return null;
   }
 
-  if (isLoadingData) {
+  if (isLoadingData || isLoadingPost) {
     return (
       <>
         <Navigation />
-        <div className="container flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+        <main className="container py-12">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Caricamento articolo...</p>
+          </div>
+        </main>
       </>
     );
   }
@@ -180,16 +228,29 @@ export default function AdminCreateBlogPostPage() {
       <main className="container py-12 max-w-5xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Crea Nuovo Articolo</h1>
+          <h1 className="text-4xl font-bold mb-2">Modifica Articolo</h1>
           <p className="text-muted-foreground">
-            Scrivi un nuovo articolo per il blog
+            Aggiorna il contenuto dell'articolo
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
           <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  loadData();
+                  loadPost();
+                }}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
@@ -201,7 +262,7 @@ export default function AdminCreateBlogPostPage() {
               <Link href="/admin/blog/categories" className="underline font-semibold">
                 Crea una categoria
               </Link>{' '}
-              prima di creare articoli.
+              prima di modificare articoli.
             </AlertDescription>
           </Alert>
         )}
@@ -327,7 +388,7 @@ export default function AdminCreateBlogPostPage() {
             <CardHeader>
               <CardTitle>Contenuto</CardTitle>
               <CardDescription>
-                Scrivi il contenuto dell'articolo con l'editor rich text
+                Modifica il contenuto dell'articolo con l'editor rich text
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -455,7 +516,7 @@ export default function AdminCreateBlogPostPage() {
                   onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                   className="w-4 h-4"
                 />
-                <Label htmlFor="is_published">Pubblica subito</Label>
+                <Label htmlFor="is_published">Pubblica</Label>
               </div>
             </CardContent>
           </Card>
@@ -463,7 +524,7 @@ export default function AdminCreateBlogPostPage() {
           {/* Actions */}
           <div className="flex gap-4">
             <Button type="submit" size="lg" disabled={isSubmitting || categories.length === 0}>
-              {isSubmitting ? 'Salvataggio...' : 'Crea Articolo'}
+              {isSubmitting ? 'Salvataggio...' : 'Aggiorna Articolo'}
             </Button>
             <Link href="/admin/blog">
               <Button type="button" variant="outline" size="lg">

@@ -40,7 +40,7 @@ interface Service {
   id: string;
   slug: string;
   name: string;
-  category: 'AI_COMPLIANCE' | 'CYBERSECURITY_NIS2' | 'TOOLKIT_FORMAZIONE';
+  category: 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione';
   type: 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO';
   short_description: string;
   long_description: string;
@@ -110,9 +110,9 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
   const getCategoryLabel = (category: string): string => {
     const labels: Record<string, string> = {
-      AI_COMPLIANCE: 'AI & Compliance',
-      CYBERSECURITY_NIS2: 'Cybersecurity & NIS2',
-      TOOLKIT_FORMAZIONE: 'Toolkit & Formazione',
+      ai_compliance: 'AI & Compliance',
+      cybersecurity_nis2: 'Cybersecurity & NIS2',
+      toolkit_formazione: 'Toolkit & Formazione',
     };
     return labels[category] || category;
   };
@@ -160,10 +160,20 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
           </div>
         )}
 
-        {/* Error Alert */}
+        {/* Error Alert with Retry */}
         {error && (
           <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadService}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 

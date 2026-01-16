@@ -257,32 +257,106 @@ export { apiClient }; // Named export for convenience
 // =============================================================================
 
 /**
+ * Traduce messaggi tecnici in messaggi user-friendly
+ */
+function translateErrorMessage(message: string): string {
+  // Validation errors comuni
+  const translations: Record<string, string> = {
+    'Input should be': 'Valore non valido',
+    'Field required': 'Campo obbligatorio',
+    'Invalid email': 'Email non valida',
+    'String should have at least': 'Testo troppo corto',
+    'String should have at most': 'Testo troppo lungo',
+    'value is not a valid email': 'Email non valida',
+    'Unauthorized': 'Accesso non autorizzato',
+    'Not found': 'Risorsa non trovata',
+    'Forbidden': 'Accesso negato',
+  };
+
+  // Cerca corrispondenza
+  for (const [key, value] of Object.entries(translations)) {
+    if (message.includes(key)) {
+      return value;
+    }
+  }
+
+  return message;
+}
+
+/**
  * Estrae messaggio errore da AxiosError
  */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<ApiError>;
+    const axiosError = error as AxiosError<any>;
+    const data = axiosError.response?.data;
 
-    // Errore con detail dal backend
-    if (axiosError.response?.data?.detail) {
-      return axiosError.response.data.detail;
+    // Handle Pydantic validation errors (array of error objects)
+    if (Array.isArray(data?.detail)) {
+      const errorMessages = data.detail
+        .map((err: any) => {
+          if (typeof err === 'string') return translateErrorMessage(err);
+          if (err.msg) return translateErrorMessage(err.msg);
+          return 'Errore di validazione';
+        })
+        .filter((msg: string, index: number, self: string[]) => self.indexOf(msg) === index); // Remove duplicates
+
+      // Se ci sono più errori simili, raggruppa
+      if (errorMessages.length > 3) {
+        return 'Alcuni campi contengono errori. Verifica i dati inseriti.';
+      }
+
+      return errorMessages.join('. ');
     }
 
-    // Errore HTTP generico
+    // Handle object detail
+    if (typeof data?.detail === 'object' && data?.detail !== null) {
+      return 'Errore nei dati forniti';
+    }
+
+    // Handle string detail
+    if (typeof data?.detail === 'string') {
+      return translateErrorMessage(data.detail);
+    }
+
+    // Handle specific HTTP status codes
     if (axiosError.response) {
-      return `Error ${axiosError.response.status}: ${axiosError.response.statusText}`;
+      const status = axiosError.response.status;
+
+      switch (status) {
+        case 400:
+          return 'I dati forniti non sono validi';
+        case 401:
+          return 'Accesso non autorizzato. Effettua il login.';
+        case 403:
+          return 'Non hai i permessi necessari per questa operazione';
+        case 404:
+          return 'Risorsa non trovata';
+        case 409:
+          return 'Operazione non possibile: conflitto con dati esistenti';
+        case 422:
+          return 'I dati forniti contengono errori di validazione';
+        case 429:
+          return 'Troppe richieste. Riprova tra qualche istante.';
+        case 500:
+          return 'Errore del server. Riprova più tardi.';
+        case 503:
+          return 'Servizio temporaneamente non disponibile';
+        default:
+          return `Si è verificato un errore (${status})`;
+      }
     }
 
-    // Errore di rete
+    // Network error
     if (axiosError.request) {
-      return 'Network error: Unable to reach server';
+      return 'Impossibile connettersi al server. Verifica la tua connessione internet.';
     }
   }
 
-  // Errore generico
+  // Generic error
   if (error instanceof Error) {
-    return error.message;
+    return translateErrorMessage(error.message);
   }
 
-  return 'An unknown error occurred';
+  return 'Si è verificato un errore imprevisto';
 }

@@ -657,41 +657,164 @@ def seed_cms_content(session: Session, users: dict):
         session: SQLAlchemy session
         users: Dizionario utenti
     """
+    from app.models.cms import PageType, ContentStatus
+
     logger.info("=" * 80)
     logger.info("SEEDING CMS CONTENT")
     logger.info("=" * 80)
 
+    admin_id = users['admin'].id
+
     # 1. Pagine CMS
     logger.info("Creating CMS pages...")
 
+    # About / Chi Siamo Page
     about_page = Page(
-        slug="chi-siamo",
+        slug="about",
         title="Chi Siamo",
-        content="""
-# Chi Siamo
-
-AI Strategy Hub è il punto di riferimento per la consulenza in AI Compliance, GDPR e Cybersecurity.
-
-## La nostra missione
-
-Aiutiamo le aziende a navigare le complessità delle normative tecnologiche europee, garantendo conformità e sicurezza.
-
-## Il team
-
-Il nostro team è composto da esperti certificati in:
-- AI & Machine Learning
-- Privacy e Data Protection (CIPP/E)
-- Cybersecurity (CISSP, CEH)
-- Risk Management (ISO 27001 Lead Auditor)
-        """,
-        is_published=True,
+        page_type=PageType.ABOUT,
+        content_blocks={
+            "sections": [
+                {
+                    "section_type": "text",
+                    "content": {
+                        "html": """<h2>AI Strategy Hub</h2>
+<p>AI Strategy Hub è il tuo partner strategico per l'integrazione dell'Intelligenza Artificiale in sicurezza e conformità normativa.</p>
+<p>Offriamo consulenza specializzata in AI Compliance, GDPR, Cybersecurity e NIS2, aiutando le aziende a innovare in modo responsabile e sicuro.</p>
+<h2>La Nostra Missione</h2>
+<p>Aiutare le aziende a navigare le complessità delle normative tecnologiche europee, garantendo conformità e sicurezza.</p>
+<h2>Il Team</h2>
+<p>Il nostro team è composto da esperti certificati in:</p>
+<ul>
+<li>Intelligenza Artificiale e Machine Learning</li>
+<li>Privacy e Data Protection (CIPP/E, DPO)</li>
+<li>Cybersecurity (CISSP, CEH, NIS2)</li>
+<li>Risk Management (ISO 27001 Lead Auditor)</li>
+</ul>"""
+                    },
+                    "order": 0
+                }
+            ]
+        },
+        status=ContentStatus.PUBLISHED,
         published_at=datetime.now() - timedelta(days=30),
-        author_id=users['admin'].id,
+        created_by=admin_id,
+        updated_by=admin_id,
         seo_title="Chi Siamo | AI Strategy Hub",
         seo_description="Scopri AI Strategy Hub: consulenza specializzata in AI Act, GDPR e NIS2. Team di esperti certificati.",
+        seo_keywords="AI Strategy Hub, chi siamo, team, consulenza AI, GDPR, cybersecurity",
     )
     session.add(about_page)
     logger.info(f"  ✓ Page: {about_page.title}")
+
+    # Privacy Policy Page
+    privacy_page = Page(
+        slug="privacy",
+        title="Privacy Policy",
+        page_type=PageType.CUSTOM,
+        content_blocks={
+            "sections": [
+                {
+                    "section_type": "text",
+                    "content": {
+                        "html": """<p><small>Ultimo aggiornamento: 15 Gennaio 2026</small></p>
+<h2>1. Titolare del Trattamento</h2>
+<p>Il Titolare del trattamento è AI Strategy Hub, con sede in Italia. Email: info@aistrategyhub.eu</p>
+<h2>2. Tipologia di Dati Raccolti</h2>
+<p>I dati personali raccolti includono: dati identificativi (nome, cognome, email), dati di navigazione (cookie tecnici, analytics), e dati relativi ai servizi richiesti.</p>
+<h2>3. Finalità del Trattamento</h2>
+<p>I dati vengono trattati per: erogazione dei servizi richiesti, gestione delle richieste di contatto, adempimenti contrattuali e legali, miglioramento dei servizi offerti.</p>
+<h2>4. Diritti dell'Interessato</h2>
+<p>Ai sensi del GDPR, l'interessato ha diritto a: accesso ai propri dati personali, rettifica e cancellazione dei dati, limitazione del trattamento, portabilità dei dati, opposizione al trattamento, revoca del consenso.</p>
+<p>Per esercitare i propri diritti, contattare: info@aistrategyhub.eu</p>"""
+                    },
+                    "order": 0
+                }
+            ]
+        },
+        status=ContentStatus.PUBLISHED,
+        published_at=datetime.now() - timedelta(days=60),
+        created_by=admin_id,
+        updated_by=admin_id,
+        seo_title="Privacy Policy | AI Strategy Hub",
+        seo_description="Informativa sulla privacy e il trattamento dei dati personali di AI Strategy Hub (GDPR compliance).",
+        seo_keywords="privacy policy, GDPR, protezione dati, trattamento dati personali",
+    )
+    session.add(privacy_page)
+    logger.info(f"  ✓ Page: {privacy_page.title}")
+
+    # Terms of Service Page
+    terms_page = Page(
+        slug="termini",
+        title="Termini di Servizio",
+        page_type=PageType.CUSTOM,
+        content_blocks={
+            "sections": [
+                {
+                    "section_type": "text",
+                    "content": {
+                        "html": """<p><small>Ultimo aggiornamento: 15 Gennaio 2026</small></p>
+<h2>1. Accettazione dei Termini</h2>
+<p>Utilizzando i servizi di AI Strategy Hub, l'utente accetta integralmente i presenti Termini di Servizio.</p>
+<h2>2. Descrizione dei Servizi</h2>
+<p>AI Strategy Hub offre servizi di consulenza in materia di: Intelligenza Artificiale e compliance normativa, GDPR e protezione dei dati, Cybersecurity e NIS2, Formazione e toolkit operativi.</p>
+<h2>3. Obblighi dell'Utente</h2>
+<p>L'utente si impegna a: fornire informazioni veritiere e aggiornate, utilizzare i servizi in modo lecito e conforme, non violare diritti di terzi, non compromettere la sicurezza dei sistemi.</p>
+<h2>4. Limitazione di Responsabilità</h2>
+<p>AI Strategy Hub non è responsabile per danni indiretti, incidentali o consequenziali derivanti dall'utilizzo o dall'impossibilità di utilizzo dei servizi.</p>
+<p>Per domande sui Termini di Servizio, contattaci: info@aistrategyhub.eu</p>"""
+                    },
+                    "order": 0
+                }
+            ]
+        },
+        status=ContentStatus.PUBLISHED,
+        published_at=datetime.now() - timedelta(days=60),
+        created_by=admin_id,
+        updated_by=admin_id,
+        seo_title="Termini di Servizio | AI Strategy Hub",
+        seo_description="Condizioni generali di servizio di AI Strategy Hub.",
+        seo_keywords="termini di servizio, condizioni, contratto, uso del sito",
+    )
+    session.add(terms_page)
+    logger.info(f"  ✓ Page: {terms_page.title}")
+
+    # Cookie Policy Page
+    cookie_page = Page(
+        slug="cookie",
+        title="Cookie Policy",
+        page_type=PageType.CUSTOM,
+        content_blocks={
+            "sections": [
+                {
+                    "section_type": "text",
+                    "content": {
+                        "html": """<p><small>Ultimo aggiornamento: 15 Gennaio 2026</small></p>
+<h2>1. Cosa sono i Cookie</h2>
+<p>I cookie sono piccoli file di testo che vengono memorizzati sul tuo dispositivo quando visiti un sito web.</p>
+<h2>2. Tipologie di Cookie Utilizzati</h2>
+<h3>Cookie Tecnici (Necessari)</h3>
+<p>Questi cookie sono essenziali per il corretto funzionamento del sito: cookie di sessione, cookie di autenticazione, cookie di sicurezza.</p>
+<h3>Cookie Analitici</h3>
+<p>Raccolgono informazioni anonime su come gli utenti utilizzano il sito (Google Analytics).</p>
+<h2>3. Come Gestire i Cookie</h2>
+<p>Puoi gestire o disabilitare i cookie attraverso le impostazioni del tuo browser (Chrome, Firefox, Safari, Edge).</p>
+<p>Per domande sulla Cookie Policy, contattaci: info@aistrategyhub.eu</p>"""
+                    },
+                    "order": 0
+                }
+            ]
+        },
+        status=ContentStatus.PUBLISHED,
+        published_at=datetime.now() - timedelta(days=60),
+        created_by=admin_id,
+        updated_by=admin_id,
+        seo_title="Cookie Policy | AI Strategy Hub",
+        seo_description="Informativa sui cookie utilizzati dal sito AI Strategy Hub (GDPR compliance).",
+        seo_keywords="cookie policy, cookie, privacy, GDPR",
+    )
+    session.add(cookie_page)
+    logger.info(f"  ✓ Page: {cookie_page.title}")
 
     # 2. Blog categories
     logger.info("Creating blog categories...")

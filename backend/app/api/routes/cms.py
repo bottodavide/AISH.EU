@@ -231,14 +231,14 @@ async def list_pages(
         "editor",
     ]
     if not is_admin_or_editor:
-        query = query.where(Page.is_published == True)
+        query = query.where(Page.status == ContentStatus.PUBLISHED)
 
     # Apply filters
     if filters.page_type:
         query = query.where(Page.page_type == filters.page_type)
 
-    if filters.is_published is not None and is_admin_or_editor:
-        query = query.where(Page.is_published == filters.is_published)
+    if filters.status and is_admin_or_editor:
+        query = query.where(Page.status == filters.status)
 
     if filters.search:
         search_pattern = f"%{filters.search}%"
@@ -269,6 +269,52 @@ async def list_pages(
         page_size=filters.page_size,
         total_pages=ceil(total / filters.page_size) if total > 0 else 0,
     )
+
+
+@router.get("/pages/slug/{slug}", response_model=PageResponse)
+async def get_page_by_slug(
+    slug: str,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_async_db),
+) -> PageResponse:
+    """
+    Dettaglio pagina per slug.
+
+    - **Pubblico**: Può vedere solo pagine pubblicate
+    - **Admin/Editor**: Può vedere tutte le pagine
+
+    Args:
+        slug: Slug pagina
+        current_user: Utente corrente (opzionale)
+        db: Database session
+
+    Returns:
+        PageResponse: Dettaglio pagina
+
+    Raises:
+        ResourceNotFoundError: Se pagina non trovata o non accessibile
+    """
+    logger.info(f"Getting page by slug: {slug}")
+
+    result = await db.execute(select(Page).where(Page.slug == slug))
+    page = result.scalar_one_or_none()
+
+    if not page:
+        logger.warning(f"Page not found with slug: {slug}")
+        raise ResourceNotFoundError(f"Page with slug '{slug}' not found")
+
+    # Check access
+    is_admin_or_editor = current_user and current_user.role in [
+        "super_admin",
+        "admin",
+        "editor",
+    ]
+
+    if not page.status == ContentStatus.PUBLISHED and not is_admin_or_editor:
+        logger.warning(f"Unauthorized access to unpublished page {slug}")
+        raise ResourceNotFoundError(f"Page with slug '{slug}' not found")
+
+    return PageResponse.model_validate(page)
 
 
 @router.get("/pages/{page_id}", response_model=PageResponse)
@@ -305,7 +351,7 @@ async def get_page(
         "editor",
     ]
 
-    if not page.is_published and not is_admin_or_editor:
+    if page.status != ContentStatus.PUBLISHED and not is_admin_or_editor:
         logger.warning(f"Unauthorized access to unpublished page {page_id}")
         raise ResourceNotFoundError(f"Page with ID {page_id} not found")
 
@@ -961,7 +1007,7 @@ async def list_blog_posts(
         "editor",
     ]
     if not is_admin_or_editor:
-        query = query.where(BlogPost.is_published == True)
+        query = query.where(BlogPost.status == ContentStatus.PUBLISHED)
 
     # Apply filters
     if filters.category_id:
@@ -971,8 +1017,8 @@ async def list_blog_posts(
         # Join with tags table
         query = query.join(BlogPost.tags).where(BlogTag.id == filters.tag_id)
 
-    if filters.is_published is not None and is_admin_or_editor:
-        query = query.where(BlogPost.is_published == filters.is_published)
+    if filters.status and is_admin_or_editor:
+        query = query.where(BlogPost.status == filters.status)
 
     if filters.search:
         search_pattern = f"%{filters.search}%"
@@ -1030,20 +1076,20 @@ async def list_blog_posts(
     )
 
 
-@router.get("/blog/posts/{post_id}", response_model=BlogPostResponse)
+@router.get("/blog/posts/{post_identifier}", response_model=BlogPostResponse)
 async def get_blog_post(
-    post_id: UUID,
+    post_identifier: str,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_async_db),
 ) -> BlogPostResponse:
     """
-    Dettaglio blog post per ID.
+    Dettaglio blog post per ID o slug.
 
     - **Pubblico**: Può vedere solo posts pubblicati (incrementa view_count)
     - **Admin/Editor**: Può vedere tutti i posts (no increment view_count)
 
     Args:
-        post_id: ID post
+        post_identifier: ID o slug del post
         current_user: Utente corrente (opzionale)
         db: Database session
 
@@ -1053,9 +1099,28 @@ async def get_blog_post(
     Raises:
         ResourceNotFoundError: Se post non trovato o non accessibile
     """
-    logger.info(f"Getting blog post {post_id}")
+    logger.info(f"Getting blog post {post_identifier}")
 
-    post = await get_blog_post_or_404(db, post_id)
+    # Try to parse as UUID first, otherwise query by slug
+    try:
+        post_id = UUID(post_identifier)
+        post = await get_blog_post_or_404(db, post_id)
+    except ValueError:
+        # Not a UUID, treat as slug
+        result = await db.execute(
+            select(BlogPost)
+            .where(BlogPost.slug == post_identifier)
+            .options(
+                selectinload(BlogPost.category),
+                selectinload(BlogPost.tags),
+                selectinload(BlogPost.author),
+            )
+        )
+        post = result.scalar_one_or_none()
+
+        if not post:
+            logger.warning(f"Blog post not found: {post_identifier}")
+            raise ResourceNotFoundError(f"Blog post with slug '{post_identifier}' not found")
 
     # Check access
     is_admin_or_editor = current_user and current_user.role in [
@@ -1065,8 +1130,8 @@ async def get_blog_post(
     ]
 
     if not post.is_published and not is_admin_or_editor:
-        logger.warning(f"Unauthorized access to unpublished post {post_id}")
-        raise ResourceNotFoundError(f"Blog post with ID {post_id} not found")
+        logger.warning(f"Unauthorized access to unpublished post {post_identifier}")
+        raise ResourceNotFoundError(f"Blog post '{post_identifier}' not found")
 
     # Increment view count se pubblico
     if not is_admin_or_editor and post.is_published:

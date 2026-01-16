@@ -20,7 +20,7 @@ interface Service {
   id: string;
   slug: string;
   name: string;
-  category: 'AI_COMPLIANCE' | 'CYBERSECURITY_NIS2' | 'TOOLKIT_FORMAZIONE';
+  category: 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione';
   type: 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO';
   short_description: string;
   pricing_type: 'FIXED' | 'RANGE' | 'CUSTOM';
@@ -33,9 +33,6 @@ interface Service {
 interface ServicesResponse {
   services: Service[];
   total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
 }
 
 export default function ServiziPage() {
@@ -89,9 +86,9 @@ export default function ServiziPage() {
 
   const getCategoryLabel = (category: string): string => {
     const labels: Record<string, string> = {
-      AI_COMPLIANCE: 'AI & Compliance',
-      CYBERSECURITY_NIS2: 'Cybersecurity & NIS2',
-      TOOLKIT_FORMAZIONE: 'Toolkit & Formazione',
+      ai_compliance: 'AI & Compliance',
+      cybersecurity_nis2: 'Cybersecurity & NIS2',
+      toolkit_formazione: 'Toolkit & Formazione',
     };
     return labels[category] || category;
   };
@@ -127,29 +124,39 @@ export default function ServiziPage() {
             Tutti i Servizi
           </Button>
           <Button
-            variant={selectedCategory === 'AI_COMPLIANCE' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('AI_COMPLIANCE')}
+            variant={selectedCategory === 'ai_compliance' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('ai_compliance')}
           >
             AI & Compliance
           </Button>
           <Button
-            variant={selectedCategory === 'CYBERSECURITY_NIS2' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('CYBERSECURITY_NIS2')}
+            variant={selectedCategory === 'cybersecurity_nis2' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('cybersecurity_nis2')}
           >
             Cybersecurity & NIS2
           </Button>
           <Button
-            variant={selectedCategory === 'TOOLKIT_FORMAZIONE' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('TOOLKIT_FORMAZIONE')}
+            variant={selectedCategory === 'toolkit_formazione' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('toolkit_formazione')}
           >
             Toolkit & Formazione
           </Button>
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert with Retry */}
         {error && (
           <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadServices}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 

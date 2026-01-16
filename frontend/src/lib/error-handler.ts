@@ -4,6 +4,7 @@
  */
 
 import { AxiosError } from 'axios';
+import axios from 'axios';
 
 export type ErrorCode =
   | 'UNKNOWN_ERROR'
@@ -93,6 +94,43 @@ function parseAxiosError(error: AxiosError): ErrorInfo {
 }
 
 /**
+ * Invia report errore al backend per notifica email
+ */
+async function reportErrorToBackend(errorInfo: ErrorInfo, stackTrace?: string): Promise<void> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+    // Generate tracking ID
+    const timestamp = new Date(errorInfo.timestamp);
+    const dateStr = timestamp.toISOString().split('T')[0].replace(/-/g, '');
+    const timeStr = timestamp.toISOString().split('T')[1].split('.')[0].replace(/:/g, '');
+    const trackingId = `ERR-${errorInfo.code}-${dateStr}-${timeStr}`;
+
+    await axios.post(
+      `${apiUrl}/api/v1/errors/report`,
+      {
+        error_code: trackingId,
+        error_message: errorInfo.message,
+        error_details: errorInfo.details,
+        stack_trace: stackTrace,
+        request_path: errorInfo.path,
+        user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+        timestamp: errorInfo.timestamp,
+      },
+      {
+        timeout: 5000, // Short timeout - non-blocking
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  } catch (reportError) {
+    // Silently fail - don't block user flow if reporting fails
+    console.error('Failed to report error to backend:', reportError);
+  }
+}
+
+/**
  * Redirect a pagina errore con parametri
  */
 export function redirectToError(errorInfo: ErrorInfo): void {
@@ -124,9 +162,11 @@ export function handleApiError(error: unknown, customCode?: ErrorCode): void {
   console.error('API Error:', error);
 
   let errorInfo: ErrorInfo;
+  let stackTrace: string | undefined;
 
   if (error instanceof AxiosError) {
     errorInfo = parseAxiosError(error);
+    stackTrace = error.stack;
   } else if (error instanceof Error) {
     errorInfo = {
       code: customCode || 'UNKNOWN_ERROR',
@@ -135,6 +175,7 @@ export function handleApiError(error: unknown, customCode?: ErrorCode): void {
       path: typeof window !== 'undefined' ? window.location.pathname : undefined,
       details: error.stack,
     };
+    stackTrace = error.stack;
   } else {
     errorInfo = {
       code: customCode || 'UNKNOWN_ERROR',
@@ -144,6 +185,10 @@ export function handleApiError(error: unknown, customCode?: ErrorCode): void {
     };
   }
 
+  // Report error to backend (non-blocking)
+  reportErrorToBackend(errorInfo, stackTrace);
+
+  // Redirect to error page
   redirectToError(errorInfo);
 }
 

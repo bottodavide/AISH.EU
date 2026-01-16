@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from '@/components/Navigation';
+import { NewsletterForm } from '@/components/NewsletterForm';
+import { Footer } from '@/components/Footer';
 
 export default function HomePage() {
   return (
@@ -226,88 +228,26 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Newsletter Section */}
+        <section className="py-16 bg-muted">
+          <div className="container">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-3xl font-bold mb-4">
+                Rimani Aggiornato
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Iscriviti alla nostra newsletter per ricevere insights su AI, GDPR e Cybersecurity
+              </p>
+              <div className="flex justify-center">
+                <NewsletterForm variant="compact" showUnsubscribe={true} />
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t py-8 bg-background">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-semibold mb-4">AI Strategy Hub</h3>
-              <p className="text-sm text-muted-foreground">
-                Consulenza AI, GDPR e Cybersecurity per aziende che innovano responsabilmente
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Servizi</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/servizi" className="text-muted-foreground hover:text-foreground">
-                    Tutti i Servizi
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/servizi/ai-compliance" className="text-muted-foreground hover:text-foreground">
-                    AI Compliance
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/servizi/cybersecurity" className="text-muted-foreground hover:text-foreground">
-                    Cybersecurity NIS2
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Azienda</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/about" className="text-muted-foreground hover:text-foreground">
-                    Chi Siamo
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog" className="text-muted-foreground hover:text-foreground">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contatti" className="text-muted-foreground hover:text-foreground">
-                    Contatti
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Legale</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/termini" className="text-muted-foreground hover:text-foreground">
-                    Termini di Servizio
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cookie" className="text-muted-foreground hover:text-foreground">
-                    Cookie Policy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} AI Strategy Hub. Tutti i diritti riservati.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

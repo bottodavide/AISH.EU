@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft, Home, RefreshCw, Copy, Check } from 'lucide-react';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
@@ -130,7 +131,9 @@ ${errorDetails ? `Dettagli: ${errorDetails}` : ''}
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full p-8 space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
@@ -265,5 +268,6 @@ ${errorDetails ? `Dettagli: ${errorDetails}` : ''}
         </div>
       </Card>
     </div>
+    </>
   );
 }

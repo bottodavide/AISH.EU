@@ -42,6 +42,7 @@ from app.core.exceptions import (
 from app.services.email_service import (
     send_welcome_email,
     send_password_reset_email,
+    send_email_verification,
 )
 from app.models.audit import AuditAction, AuditLog
 from app.models.user import LoginAttempt, Session, User, UserProfile
@@ -545,6 +546,58 @@ async def verify_email(
     return SuccessResponse(
         message="Email verified successfully",
         data={"email": user.email},
+    )
+
+
+@router.post("/resend-verification", response_model=SuccessResponse)
+async def resend_verification_email(
+    data: ResendVerificationRequest,
+    db: AsyncSession = Depends(get_async_db),
+) -> SuccessResponse:
+    """
+    Re-invia email di verifica.
+
+    Args:
+        data: Email utente
+
+    Returns:
+        SuccessResponse: Conferma invio
+    """
+    logger.info(f"Resend verification email request for: {data.email}")
+
+    # Cerca utente
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Per sicurezza, non rivelare se email esiste
+        logger.warning(f"Resend verification for non-existent email: {data.email}")
+        return SuccessResponse(
+            message="Se l'email esiste nel sistema, riceverai un'email di verifica"
+        )
+
+    # Se già verificato
+    if user.is_email_verified:
+        logger.info(f"Email already verified: {data.email}")
+        return SuccessResponse(message="Email già verificata")
+
+    # Genera nuovo token
+    user.email_verification_token = generate_random_token()
+    await db.commit()
+
+    # Invia email
+    try:
+        send_email_verification(
+            to_email=user.email,
+            user_name=user.first_name or user.email,
+            verification_token=user.email_verification_token,
+        )
+        logger.info(f"Verification email resent to: {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {e}")
+
+    return SuccessResponse(
+        message="Email di verifica inviata. Controlla la tua casella di posta."
     )
 
 

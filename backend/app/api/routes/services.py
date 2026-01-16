@@ -148,9 +148,9 @@ async def list_services(
     )
 
 
-@router.get("/{service_id}", response_model=ServiceDetailResponse)
+@router.get("/{service_identifier}", response_model=ServiceDetailResponse)
 async def get_service(
-    service_id: UUID,
+    service_identifier: str,
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_async_db),
 ) -> ServiceDetailResponse:
@@ -161,18 +161,26 @@ async def get_service(
     Admin: Tutti i servizi
 
     Args:
-        service_id: ID servizio
+        service_identifier: ID o slug del servizio
         current_user: Utente corrente (opzionale)
 
     Returns:
         ServiceDetailResponse: Dettaglio servizio completo
     """
-    logger.info(f"Getting service {service_id}")
+    logger.info(f"Getting service {service_identifier}")
+
+    # Try to parse as UUID first, otherwise use as slug
+    try:
+        service_id = UUID(service_identifier)
+        where_clause = Service.id == service_id
+    except ValueError:
+        # Not a UUID, treat as slug
+        where_clause = Service.slug == service_identifier
 
     # Load service with relationships
     query = (
         select(Service)
-        .where(Service.id == service_id)
+        .where(where_clause)
         .options(
             selectinload(Service.contents),
             selectinload(Service.faqs),
@@ -184,16 +192,16 @@ async def get_service(
     service = result.scalar_one_or_none()
 
     if not service:
-        logger.warning(f"Service not found: {service_id}")
+        logger.warning(f"Service not found: {service_identifier}")
         raise ResourceNotFoundError(
             resource_type="Service",
-            resource_id=service_id,
+            resource_id=service_identifier,
         )
 
     # Se non admin, verifica che sia pubblicato
     is_admin = current_user and current_user.role in ["super_admin", "admin"]
     if not is_admin and not service.is_published:
-        logger.warning(f"Unpublished service access denied: {service_id}")
+        logger.warning(f"Unpublished service access denied: {service_identifier}")
         raise ResourceNotFoundError(
             resource_type="Service",
             resource_id=service_id,

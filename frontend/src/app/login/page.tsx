@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,8 +101,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container flex items-center justify-center min-h-screen py-12">
-      <Card className="w-full max-w-md">
+    <>
+      <Navigation />
+      <div className="container flex items-center justify-center min-h-screen py-12">
+        <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
             {mfaRequired ? 'Verifica MFA' : 'Accedi'}
@@ -224,5 +227,6 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+    </>
   );
 }

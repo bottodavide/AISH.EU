@@ -50,8 +50,12 @@ export interface LoginResponse {
 export interface RegisterData {
   email: string;
   password: string;
+  confirm_password: string;
   first_name?: string;
   last_name?: string;
+  company_name?: string;
+  accept_terms: boolean;
+  accept_privacy: boolean;
 }
 
 interface AuthContextType {

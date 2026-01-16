@@ -79,23 +79,35 @@ export default function DashboardPage() {
     setError(null);
 
     try {
-      // Load orders
-      const ordersResponse = await apiClient.get<{ orders: Order[] }>(
-        '/api/v1/orders'
-      );
-      setOrders(ordersResponse.orders);
+      // Load orders (with fallback)
+      try {
+        const ordersResponse = await apiClient.get<{ orders: Order[] }>(
+          '/api/v1/orders'
+        );
+        setOrders(ordersResponse.orders || []);
+      } catch {
+        setOrders([]);
+      }
 
-      // Load invoices
-      const invoicesResponse = await apiClient.get<{ invoices: Invoice[] }>(
-        '/api/v1/invoices'
-      );
-      setInvoices(invoicesResponse.invoices);
+      // Load invoices (with fallback)
+      try {
+        const invoicesResponse = await apiClient.get<{ invoices: Invoice[] }>(
+          '/api/v1/invoices'
+        );
+        setInvoices(invoicesResponse.invoices || []);
+      } catch {
+        setInvoices([]);
+      }
 
-      // Load profile
-      const profileResponse = await apiClient.get<UserProfile>(
-        '/api/v1/users/me'
-      );
-      setProfile(profileResponse);
+      // Load profile (with fallback)
+      try {
+        const profileResponse = await apiClient.get<UserProfile>(
+          '/api/v1/users/me'
+        );
+        setProfile(profileResponse);
+      } catch {
+        // Profile loading can fail, that's ok
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -192,7 +204,7 @@ export default function DashboardPage() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Ordini ({orders.length})
+            Ordini ({orders?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab('invoices')}
@@ -202,7 +214,7 @@ export default function DashboardPage() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Fatture ({invoices.length})
+            Fatture ({invoices?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab('profile')}
@@ -246,7 +258,7 @@ export default function DashboardPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold">{orders.length}</div>
+                      <div className="text-3xl font-bold">{orders?.length || 0}</div>
                     </CardContent>
                   </Card>
 
@@ -258,7 +270,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold">
-                        {invoices.filter((inv) => inv.status === 'SENT').length}
+                        {invoices?.filter((inv) => inv.status === 'SENT').length || 0}
                       </div>
                     </CardContent>
                   </Card>
@@ -271,7 +283,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold">
-                        {orders.filter((ord) => ord.status === 'PROCESSING').length}
+                        {orders?.filter((ord) => ord.status === 'PROCESSING').length || 0}
                       </div>
                     </CardContent>
                   </Card>
@@ -302,13 +314,13 @@ export default function DashboardPage() {
                     <CardDescription>I tuoi ultimi 5 ordini</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {orders.length === 0 ? (
+                    {!orders || orders.length === 0 ? (
                       <p className="text-muted-foreground text-center py-4">
                         Nessun ordine ancora
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {orders.slice(0, 5).map((order) => (
+                        {orders?.slice(0, 5).map((order) => (
                           <div
                             key={order.id}
                             className="flex items-center justify-between p-3 border rounded-lg"
@@ -346,7 +358,7 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {orders.length === 0 ? (
+                  {!orders || orders.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground mb-4">
                         Non hai ancora effettuato ordini
@@ -357,7 +369,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {orders.map((order) => (
+                      {orders?.map((order) => (
                         <div
                           key={order.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -395,7 +407,7 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {invoices.length === 0 ? (
+                  {!invoices || invoices.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">
                         Non hai ancora fatture
@@ -403,7 +415,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {invoices.map((invoice) => (
+                      {invoices?.map((invoice) => (
                         <div
                           key={invoice.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -500,12 +512,11 @@ export default function DashboardPage() {
                     <Button variant="outline" className="w-full">
                       Modifica Profilo
                     </Button>
-                    <Button variant="outline" className="w-full">
-                      Cambia Password
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Impostazioni MFA
-                    </Button>
+                    <Link href="/dashboard/security" className="block">
+                      <Button variant="outline" className="w-full">
+                        Sicurezza & Password
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

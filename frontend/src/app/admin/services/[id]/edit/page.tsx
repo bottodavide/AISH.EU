@@ -1,13 +1,13 @@
 /**
- * Admin Create Service Page
- * Descrizione: Form per creare nuovo servizio
+ * Admin Edit Service Page
+ * Descrizione: Form per modificare servizio esistente
  * Autore: Claude per Davide
- * Data: 2026-01-15
+ * Data: 2026-01-16
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
@@ -19,7 +19,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AdminCreateServicePage() {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function AdminEditServicePage({ params }: PageProps) {
   const router = useRouter();
   const { isAuthenticated, isAdmin } = useAuth();
 
@@ -44,6 +50,46 @@ export default function AdminCreateServicePage() {
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load service data
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadService();
+    }
+  }, [params.id, isAuthenticated, isAdmin]);
+
+  const loadService = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const service = await apiClient.get<any>(`/api/v1/services/${params.id}`);
+
+      setFormData({
+        name: service.name,
+        slug: service.slug,
+        category: service.category,
+        type: service.type,
+        short_description: service.short_description,
+        long_description: service.long_description,
+        pricing_type: service.pricing_type,
+        price_min: service.price_min ? service.price_min.toString() : '',
+        price_max: service.price_max ? service.price_max.toString() : '',
+        currency: service.currency || 'EUR',
+        duration_weeks: service.duration_weeks ? service.duration_weeks.toString() : '',
+        is_featured: service.is_featured || false,
+        is_published: service.is_published || false,
+        features: service.features && service.features.length > 0 ? service.features : [''],
+        deliverables: service.deliverables && service.deliverables.length > 0 ? service.deliverables : [''],
+        target_audience: service.target_audience && service.target_audience.length > 0 ? service.target_audience : [''],
+      });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Auto-generate slug from name
   const handleNameChange = (name: string) => {
@@ -83,7 +129,7 @@ export default function AdminCreateServicePage() {
         target_audience: formData.target_audience.filter((t) => t.trim() !== ''),
       };
 
-      await apiClient.post('/api/v1/services', payload);
+      await apiClient.put(`/api/v1/services/${params.id}`, payload);
 
       // Redirect to services list
       router.push('/admin/services');
@@ -122,6 +168,20 @@ export default function AdminCreateServicePage() {
     return null;
   }
 
+  if (isLoading) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Caricamento servizio...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Navigation />
@@ -129,16 +189,26 @@ export default function AdminCreateServicePage() {
       <main className="container py-12 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Crea Nuovo Servizio</h1>
+          <h1 className="text-4xl font-bold mb-2">Modifica Servizio</h1>
           <p className="text-muted-foreground">
-            Compila il form per creare un nuovo servizio di consulenza
+            Aggiorna le informazioni del servizio
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
           <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadService}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
@@ -421,7 +491,7 @@ export default function AdminCreateServicePage() {
                   onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                   className="w-4 h-4"
                 />
-                <Label htmlFor="is_published">Pubblica subito</Label>
+                <Label htmlFor="is_published">Pubblica</Label>
               </div>
             </CardContent>
           </Card>
@@ -429,7 +499,7 @@ export default function AdminCreateServicePage() {
           {/* Actions */}
           <div className="flex gap-4">
             <Button type="submit" size="lg" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvataggio...' : 'Crea Servizio'}
+              {isSubmitting ? 'Salvataggio...' : 'Aggiorna Servizio'}
             </Button>
             <Link href="/admin/services">
               <Button type="button" variant="outline" size="lg">

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { NewsletterForm } from '@/components/NewsletterForm';
 
 // Types
 interface BlogCategory {
@@ -51,11 +52,6 @@ interface BlogPostsResponse {
   total_pages: number;
 }
 
-interface CategoriesResponse {
-  categories: BlogCategory[];
-  total: number;
-}
-
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -78,10 +74,10 @@ export default function BlogPage() {
 
   const loadCategories = async () => {
     try {
-      const response = await apiClient.get<CategoriesResponse>(
+      const response = await apiClient.get<BlogCategory[]>(
         '/api/v1/cms/blog/categories'
       );
-      setCategories(response.categories);
+      setCategories(response);
     } catch (err) {
       console.error('Failed to load categories:', err);
     }
@@ -184,10 +180,20 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert with Retry */}
         {error && (
           <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadPosts}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
@@ -327,13 +333,8 @@ export default function BlogPage() {
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
             Iscriviti alla nostra newsletter per ricevere gli ultimi articoli su AI, compliance e cybersecurity
           </p>
-          <div className="max-w-md mx-auto flex gap-2">
-            <Input
-              type="email"
-              placeholder="La tua email"
-              className="flex-1"
-            />
-            <Button>Iscriviti</Button>
+          <div className="flex justify-center">
+            <NewsletterForm variant="compact" showUnsubscribe={true} />
           </div>
         </div>
       </main>

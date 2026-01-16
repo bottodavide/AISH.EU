@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
+import { NewsletterForm } from '@/components/NewsletterForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -171,10 +172,20 @@ export default function BlogPostDetailPage({ params }: BlogPostDetailPageProps) 
           </div>
         )}
 
-        {/* Error Alert */}
+        {/* Error Alert with Retry */}
         {error && (
           <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadPost}
+                className="ml-4 bg-white hover:bg-gray-100"
+              >
+                Riprova
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
@@ -335,13 +346,8 @@ export default function BlogPostDetailPage({ params }: BlogPostDetailPageProps) 
                       Ricevi i nostri articoli direttamente nella tua inbox
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <input
-                      type="email"
-                      placeholder="La tua email"
-                      className="w-full px-3 py-2 border rounded-md"
-                    />
-                    <Button className="w-full">Iscriviti</Button>
+                  <CardContent>
+                    <NewsletterForm variant="compact" showUnsubscribe={false} />
                   </CardContent>
                 </Card>
 

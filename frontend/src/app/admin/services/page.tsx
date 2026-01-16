@@ -23,7 +23,7 @@ interface Service {
   id: string;
   slug: string;
   name: string;
-  category: 'AI_COMPLIANCE' | 'CYBERSECURITY_NIS2' | 'TOOLKIT_FORMAZIONE';
+  category: 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione';
   type: 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO';
   short_description: string;
   pricing_type: 'FIXED' | 'RANGE' | 'CUSTOM';
@@ -131,9 +131,9 @@ export default function AdminServicesPage() {
 
   const getCategoryLabel = (category: string): string => {
     const labels: Record<string, string> = {
-      AI_COMPLIANCE: 'AI & Compliance',
-      CYBERSECURITY_NIS2: 'Cybersecurity & NIS2',
-      TOOLKIT_FORMAZIONE: 'Toolkit & Formazione',
+      ai_compliance: 'AI & Compliance',
+      cybersecurity_nis2: 'Cybersecurity & NIS2',
+      toolkit_formazione: 'Toolkit & Formazione',
     };
     return labels[category] || category;
   };
@@ -214,9 +214,9 @@ export default function AdminServicesPage() {
                   Tutti
                 </Button>
                 <Button
-                  variant={filterCategory === 'AI_COMPLIANCE' ? 'default' : 'outline'}
+                  variant={filterCategory === 'ai_compliance' ? 'default' : 'outline'}
                   onClick={() => {
-                    setFilterCategory('AI_COMPLIANCE');
+                    setFilterCategory('ai_compliance');
                     setCurrentPage(1);
                   }}
                   size="sm"
@@ -224,9 +224,9 @@ export default function AdminServicesPage() {
                   AI
                 </Button>
                 <Button
-                  variant={filterCategory === 'CYBERSECURITY_NIS2' ? 'default' : 'outline'}
+                  variant={filterCategory === 'cybersecurity_nis2' ? 'default' : 'outline'}
                   onClick={() => {
-                    setFilterCategory('CYBERSECURITY_NIS2');
+                    setFilterCategory('cybersecurity_nis2');
                     setCurrentPage(1);
                   }}
                   size="sm"
@@ -234,9 +234,9 @@ export default function AdminServicesPage() {
                   Cyber
                 </Button>
                 <Button
-                  variant={filterCategory === 'TOOLKIT_FORMAZIONE' ? 'default' : 'outline'}
+                  variant={filterCategory === 'toolkit_formazione' ? 'default' : 'outline'}
                   onClick={() => {
-                    setFilterCategory('TOOLKIT_FORMAZIONE');
+                    setFilterCategory('toolkit_formazione');
                     setCurrentPage(1);
                   }}
                   size="sm"

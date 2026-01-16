@@ -409,6 +409,103 @@ def send_generic_notification_email(
     )
 
 
+def send_error_notification_email(
+    error_code: str,
+    error_message: str,
+    error_details: Optional[str] = None,
+    user_email: Optional[str] = None,
+    request_path: Optional[str] = None,
+    request_method: Optional[str] = None,
+    stack_trace: Optional[str] = None,
+) -> bool:
+    """
+    Invia notifica errore all'amministratore.
+
+    Args:
+        error_code: Codice errore
+        error_message: Messaggio errore
+        error_details: Dettagli aggiuntivi
+        user_email: Email utente che ha riscontrato l'errore
+        request_path: Percorso richiesta HTTP
+        request_method: Metodo HTTP (GET, POST, etc.)
+        stack_trace: Stack trace completo
+
+    Returns:
+        bool: True se successo
+    """
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    # Crea HTML body per la notifica
+    html_body = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #dc2626; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+        .section {{ background-color: #f9fafb; padding: 15px; border-left: 4px solid #3b82f6; margin-bottom: 15px; border-radius: 3px; }}
+        .label {{ font-weight: bold; color: #1f2937; }}
+        .value {{ font-family: 'Courier New', monospace; background-color: #e5e7eb; padding: 2px 6px; border-radius: 3px; display: inline-block; }}
+        .stack-trace {{ background-color: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }}
+        .footer {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }}
+        h2 {{ margin: 0; font-size: 20px; }}
+        p {{ margin: 8px 0; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>⚠️ NOTIFICA ERRORE - AI Strategy Hub</h2>
+    </div>
+
+    <div class="section">
+        <p><span class="label">Codice Errore:</span> <span class="value">{error_code}</span></p>
+        <p><span class="label">Timestamp:</span> {timestamp}</p>
+    </div>
+
+    <div class="section">
+        <p class="label">Messaggio:</p>
+        <p>{error_message}</p>
+    </div>
+
+    {f'<div class="section"><p><span class="label">Utente:</span> <span class="value">{user_email}</span></p></div>' if user_email else ''}
+
+    {f'<div class="section"><p><span class="label">Richiesta:</span> <span class="value">{request_method} {request_path}</span></p></div>' if request_path and request_method else ''}
+
+    {f'<div class="section"><p class="label">Dettagli:</p><p>{error_details}</p></div>' if error_details else ''}
+
+    {f'<div class="section"><p class="label">Stack Trace:</p><pre class="stack-trace">{stack_trace}</pre></div>' if stack_trace else ''}
+
+    <div class="footer">
+        <p>Questa è una notifica automatica generata dal sistema di error tracking di AI Strategy Hub.</p>
+        <p>Per ulteriori informazioni, accedi al sistema di logging o contatta il team tecnico.</p>
+    </div>
+</body>
+</html>
+"""
+
+    # Invia email all'amministratore
+    subject = f"[AI Strategy Hub] Errore {error_code} - {timestamp}"
+    admin_email = settings.ADMIN_EMAIL or "davide@davidebotto.com"
+
+    try:
+        success = ms_graph_service.send_email(
+            to=admin_email,
+            subject=subject,
+            body_html=html_body,
+        )
+
+        if success:
+            logger.info(f"Error notification sent to {admin_email}")
+        else:
+            logger.warning(f"Failed to send error notification to {admin_email}")
+
+        return success
+    except Exception as e:
+        logger.error(f"Exception sending error notification: {e}")
+        return False
+
+
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================

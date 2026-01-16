@@ -115,6 +115,9 @@ class Settings(BaseSettings):
     MS_GRAPH_SENDER_EMAIL: str = "noreply@aistrategyhub.eu"
     MS_GRAPH_SENDER_NAME: str = "AI Strategy Hub"
 
+    # Admin email for error notifications
+    ADMIN_EMAIL: str = "davide@davidebotto.com"
+
     # =========================================================================
     # STRIPE PAYMENTS
     # =========================================================================
