@@ -29,7 +29,7 @@ export default function AdminLayout({
 
     // Redirect non-admin users to dashboard
     if (!isLoading && isAuthenticated && user) {
-      const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin';
       if (!isAdmin) {
         router.push('/dashboard');
       }
@@ -51,7 +51,7 @@ export default function AdminLayout({
   }
 
   // Check if user is admin
-  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin';
   if (!isAdmin) {
     return null;
   }

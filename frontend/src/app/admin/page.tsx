@@ -72,16 +72,14 @@ export default function AdminDashboardPage() {
       setStats(statsResponse);
 
       // Load recent users
-      const usersResponse = await apiClient.get<{ users: RecentUser[] }>(
+      const usersResponse = await apiClient.get<{ users: RecentUser[]; total: number }>(
         '/api/v1/admin/users?page=1&page_size=5&sort_by=created_at&sort_order=desc'
       );
-      setRecentUsers(usersResponse.users);
+      setRecentUsers(usersResponse.users || []);
 
-      // Load recent orders
-      const ordersResponse = await apiClient.get<{ orders: RecentOrder[] }>(
-        '/api/v1/admin/orders?page=1&page_size=5&sort_by=created_at&sort_order=desc'
-      );
-      setRecentOrders(ordersResponse.orders);
+      // TODO: Load recent orders quando endpoint sarà implementato
+      // Per ora lasciamo lista vuota
+      setRecentOrders([]);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
