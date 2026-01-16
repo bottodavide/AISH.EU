@@ -323,6 +323,7 @@ class BlogPostFilters(BaseModel):
     category_id: Optional[UUID] = None
     tag_id: Optional[UUID] = None
     is_published: Optional[bool] = None
+    status: Optional[str] = Field(None, description="Filter by status (DRAFT, PUBLISHED, etc)")
     search: Optional[str] = Field(
         None, max_length=255, description="Search in title/excerpt"
     )
