@@ -26,6 +26,7 @@ from app.core.exceptions import (
 
 # Import routers
 from app.api.routes import (
+    about,
     admin,
     analytics,
     auth,
@@ -197,6 +198,7 @@ app.include_router(analytics.router, prefix=API_V1_PREFIX + "/analytics", tags=[
 app.include_router(homepage.router, prefix=API_V1_PREFIX, tags=["Homepage"])  # ✅ Homepage Banners & Content
 app.include_router(packages.router, prefix=API_V1_PREFIX, tags=["Packages"])  # ✅ Consulting Packages
 app.include_router(use_cases.router, prefix=API_V1_PREFIX, tags=["Use Cases"])  # ✅ Use Cases / Success Stories
+app.include_router(about.router, prefix=API_V1_PREFIX + "/about", tags=["About"])  # ✅ About Page / Chi Siamo
 
 # TODO: Registra altri routers:
 # - Webhooks (/api/v1/webhooks) - Stripe webhooks

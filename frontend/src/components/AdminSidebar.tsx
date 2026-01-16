@@ -24,6 +24,7 @@ import {
   Package,
   Image as ImageIcon,
   Briefcase,
+  UserCircle,
 } from 'lucide-react';
 
 interface NavItem {
@@ -75,6 +76,12 @@ const navItems: NavItem[] = [
     href: '/admin/use-cases',
     icon: Briefcase,
     description: 'Success stories',
+  },
+  {
+    title: 'Chi Siamo',
+    href: '/admin/about',
+    icon: UserCircle,
+    description: 'Pagina About',
   },
   {
     title: 'Ordini',

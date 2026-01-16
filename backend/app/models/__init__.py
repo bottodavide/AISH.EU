@@ -17,6 +17,7 @@ import app.models.knowledge_base
 import app.models.newsletter
 import app.models.file
 import app.models.use_case
+import app.models.about_page
 
 __all__ = [
     "Base",
