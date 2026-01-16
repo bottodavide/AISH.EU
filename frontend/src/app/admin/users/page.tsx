@@ -24,7 +24,7 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'ADMIN' | 'EDITOR' | 'CUSTOMER' | 'VIEWER';
+  role: 'super_admin' | 'admin' | 'editor' | 'support' | 'customer' | 'guest';
   is_active: boolean;
   is_verified: boolean;
   mfa_enabled: boolean;
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
     }
 
     try {
-      await apiClient.patch(`/api/v1/admin/users/${userId}`, {
+      await apiClient.put(`/api/v1/admin/users/${userId}`, {
         is_active: !currentStatus,
       });
       await loadUsers();
@@ -119,22 +119,22 @@ export default function AdminUsersPage() {
 
   const handleChangeRole = async (userId: string, userEmail: string) => {
     const newRole = prompt(
-      `Cambia ruolo per ${userEmail}:\n\nRuoli disponibili:\n- ADMIN\n- EDITOR\n- CUSTOMER\n- VIEWER\n\nInserisci il nuovo ruolo:`
+      `Cambia ruolo per ${userEmail}:\n\nRuoli disponibili:\n- admin\n- editor\n- customer\n- support\n- guest\n\nInserisci il nuovo ruolo:`
     );
 
     if (!newRole) return;
 
-    const validRoles = ['ADMIN', 'EDITOR', 'CUSTOMER', 'VIEWER'];
-    const upperRole = newRole.toUpperCase();
+    const validRoles = ['super_admin', 'admin', 'editor', 'support', 'customer', 'guest'];
+    const lowerRole = newRole.toLowerCase().replace(/\s+/g, '_');
 
-    if (!validRoles.includes(upperRole)) {
+    if (!validRoles.includes(lowerRole)) {
       alert('Ruolo non valido');
       return;
     }
 
     try {
-      await apiClient.patch(`/api/v1/admin/users/${userId}`, {
-        role: upperRole,
+      await apiClient.put(`/api/v1/admin/users/${userId}`, {
+        role: lowerRole,
       });
       await loadUsers();
     } catch (err) {
@@ -144,14 +144,24 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
-      ADMIN: 'bg-red-100 text-red-800',
-      EDITOR: 'bg-blue-100 text-blue-800',
-      CUSTOMER: 'bg-green-100 text-green-800',
-      VIEWER: 'bg-gray-100 text-gray-800',
+      super_admin: 'bg-purple-100 text-purple-800',
+      admin: 'bg-red-100 text-red-800',
+      editor: 'bg-blue-100 text-blue-800',
+      support: 'bg-yellow-100 text-yellow-800',
+      customer: 'bg-green-100 text-green-800',
+      guest: 'bg-gray-100 text-gray-800',
+    };
+    const labels: Record<string, string> = {
+      super_admin: 'Super Admin',
+      admin: 'Admin',
+      editor: 'Editor',
+      support: 'Support',
+      customer: 'Cliente',
+      guest: 'Ospite',
     };
     return (
       <span className={`text-xs px-2 py-1 rounded-full font-medium ${styles[role] || 'bg-gray-100 text-gray-800'}`}>
-        {role}
+        {labels[role] || role}
       </span>
     );
   };
@@ -222,9 +232,9 @@ export default function AdminUsersPage() {
                   Tutti
                 </Button>
                 <Button
-                  variant={filterRole === 'ADMIN' ? 'default' : 'outline'}
+                  variant={filterRole === 'admin' ? 'default' : 'outline'}
                   onClick={() => {
-                    setFilterRole('ADMIN');
+                    setFilterRole('admin');
                     setCurrentPage(1);
                   }}
                   size="sm"
@@ -232,9 +242,9 @@ export default function AdminUsersPage() {
                   Admin
                 </Button>
                 <Button
-                  variant={filterRole === 'CUSTOMER' ? 'default' : 'outline'}
+                  variant={filterRole === 'customer' ? 'default' : 'outline'}
                   onClick={() => {
-                    setFilterRole('CUSTOMER');
+                    setFilterRole('customer');
                     setCurrentPage(1);
                   }}
                   size="sm"

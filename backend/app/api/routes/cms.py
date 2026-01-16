@@ -123,7 +123,7 @@ async def get_page_or_404(db: AsyncSession, page_id: UUID) -> Page:
 
     if not page:
         logger.warning(f"Page not found: {page_id}")
-        raise ResourceNotFoundError(f"Page with ID {page_id} not found")
+        raise ResourceNotFoundError("Page", page_id)
 
     return page
 
@@ -155,7 +155,7 @@ async def get_blog_post_or_404(db: AsyncSession, post_id: UUID) -> BlogPost:
 
     if not post:
         logger.warning(f"Blog post not found: {post_id}")
-        raise ResourceNotFoundError(f"Blog post with ID {post_id} not found")
+        raise ResourceNotFoundError("BlogPost", post_id)
 
     return post
 
@@ -166,7 +166,7 @@ async def create_audit_log(
     action: AuditAction,
     entity_type: str,
     entity_id: UUID,
-    details: Optional[dict] = None,
+    changes: Optional[dict] = None,
 ):
     """
     Crea audit log entry.
@@ -177,8 +177,10 @@ async def create_audit_log(
         action: Tipo azione
         entity_type: Tipo entità (page, blog_post, etc.)
         entity_id: ID entità
-        details: Dettagli opzionali
+        changes: Modifiche opzionali (before/after values)
     """
+    from datetime import datetime, timezone
+
     logger.debug(
         f"Creating audit log: user={user_id}, action={action}, entity={entity_type}:{entity_id}"
     )
@@ -188,7 +190,8 @@ async def create_audit_log(
         action=action,
         entity_type=entity_type,
         entity_id=entity_id,
-        details=details or {},
+        changes=changes,
+        created_at=datetime.now(timezone.utc),
     )
 
     db.add(audit_entry)
@@ -301,7 +304,7 @@ async def get_page_by_slug(
 
     if not page:
         logger.warning(f"Page not found with slug: {slug}")
-        raise ResourceNotFoundError(f"Page with slug '{slug}' not found")
+        raise ResourceNotFoundError("Page", slug)
 
     # Check access
     is_admin_or_editor = current_user and current_user.role in [
@@ -312,7 +315,7 @@ async def get_page_by_slug(
 
     if not page.status == ContentStatus.PUBLISHED and not is_admin_or_editor:
         logger.warning(f"Unauthorized access to unpublished page {slug}")
-        raise ResourceNotFoundError(f"Page with slug '{slug}' not found")
+        raise ResourceNotFoundError("Page", slug)
 
     return PageResponse.model_validate(page)
 
@@ -353,7 +356,7 @@ async def get_page(
 
     if page.status != ContentStatus.PUBLISHED and not is_admin_or_editor:
         logger.warning(f"Unauthorized access to unpublished page {page_id}")
-        raise ResourceNotFoundError(f"Page with ID {page_id} not found")
+        raise ResourceNotFoundError("Page", page_id)
 
     return PageResponse.model_validate(page)
 
@@ -413,7 +416,7 @@ async def create_page(
         action=AuditAction.CREATE,
         entity_type="page",
         entity_id=page.id,
-        details={"title": page.title, "slug": page.slug},
+        changes={"title": page.title, "slug": page.slug},
     )
 
     await db.commit()
@@ -492,7 +495,7 @@ async def update_page(
         action=AuditAction.UPDATE,
         entity_type="page",
         entity_id=page.id,
-        details={"updated_fields": list(update_data.keys())},
+        changes={"updated_fields": list(update_data.keys())},
     )
 
     await db.commit()
@@ -536,7 +539,7 @@ async def delete_page(
         action=AuditAction.DELETE,
         entity_type="page",
         entity_id=page.id,
-        details={"title": page.title, "slug": page.slug},
+        changes={"title": page.title, "slug": page.slug},
     )
 
     await db.delete(page)
@@ -595,7 +598,7 @@ async def toggle_publish_page(
         action=AuditAction.UPDATE,
         entity_type="page",
         entity_id=page.id,
-        details={"action": action_type},
+        changes={"action": action_type},
     )
 
     await db.commit()
@@ -690,7 +693,7 @@ async def create_blog_category(
         action=AuditAction.CREATE,
         entity_type="blog_category",
         entity_id=category.id,
-        details={"name": category.name},
+        changes={"name": category.name},
     )
 
     await db.commit()
@@ -731,7 +734,7 @@ async def update_blog_category(
     result = await db.execute(select(BlogCategory).where(BlogCategory.id == category_id))
     category = result.scalar_one_or_none()
     if not category:
-        raise ResourceNotFoundError(f"Category with ID {category_id} not found")
+        raise ResourceNotFoundError("BlogCategory", category_id)
 
     # Check unique name if changed
     if category_data.name and category_data.name != category.name:
@@ -803,7 +806,7 @@ async def delete_blog_category(
     result = await db.execute(select(BlogCategory).where(BlogCategory.id == category_id))
     category = result.scalar_one_or_none()
     if not category:
-        raise ResourceNotFoundError(f"Category with ID {category_id} not found")
+        raise ResourceNotFoundError("BlogCategory", category_id)
 
     # Check if has posts
     posts_result = await db.execute(
@@ -824,7 +827,7 @@ async def delete_blog_category(
         action=AuditAction.DELETE,
         entity_type="blog_category",
         entity_id=category.id,
-        details={"name": category.name},
+        changes={"name": category.name},
     )
 
     await db.delete(category)
@@ -909,7 +912,7 @@ async def create_blog_tag(
         action=AuditAction.CREATE,
         entity_type="blog_tag",
         entity_id=tag.id,
-        details={"name": tag.name},
+        changes={"name": tag.name},
     )
 
     await db.commit()
@@ -948,7 +951,7 @@ async def delete_blog_tag(
     result = await db.execute(select(BlogTag).where(BlogTag.id == tag_id))
     tag = result.scalar_one_or_none()
     if not tag:
-        raise ResourceNotFoundError(f"Tag with ID {tag_id} not found")
+        raise ResourceNotFoundError("BlogTag", tag_id)
 
     # Audit log
     await create_audit_log(
@@ -957,7 +960,7 @@ async def delete_blog_tag(
         action=AuditAction.DELETE,
         entity_type="blog_tag",
         entity_id=tag.id,
-        details={"name": tag.name},
+        changes={"name": tag.name},
     )
 
     await db.delete(tag)
@@ -1120,7 +1123,7 @@ async def get_blog_post(
 
         if not post:
             logger.warning(f"Blog post not found: {post_identifier}")
-            raise ResourceNotFoundError(f"Blog post with slug '{post_identifier}' not found")
+            raise ResourceNotFoundError("BlogPost", post_identifier)
 
     # Check access
     is_admin_or_editor = current_user and current_user.role in [
@@ -1131,7 +1134,7 @@ async def get_blog_post(
 
     if not post.is_published and not is_admin_or_editor:
         logger.warning(f"Unauthorized access to unpublished post {post_identifier}")
-        raise ResourceNotFoundError(f"Blog post '{post_identifier}' not found")
+        raise ResourceNotFoundError("BlogPost", post_identifier)
 
     # Increment view count se pubblico
     if not is_admin_or_editor and post.is_published:
@@ -1180,14 +1183,14 @@ async def create_blog_post(
         select(BlogCategory).where(BlogCategory.id == post_data.category_id)
     )
     if not result.scalar_one_or_none():
-        raise ResourceNotFoundError(f"Category with ID {post_data.category_id} not found")
+        raise ResourceNotFoundError("BlogCategory", post_data.category_id)
 
     # Check tags exist
     if post_data.tag_ids:
         result = await db.execute(select(BlogTag).where(BlogTag.id.in_(post_data.tag_ids)))
         tags = result.scalars().all()
         if len(tags) != len(post_data.tag_ids):
-            raise ResourceNotFoundError("One or more tag IDs not found")
+            raise ResourceNotFoundError("BlogTag", "multiple", details={"message": "One or more tag IDs not found"})
     else:
         tags = []
 
@@ -1225,7 +1228,7 @@ async def create_blog_post(
         action=AuditAction.CREATE,
         entity_type="blog_post",
         entity_id=post.id,
-        details={"title": post.title, "slug": post.slug},
+        changes={"title": post.title, "slug": post.slug},
     )
 
     await db.commit()
@@ -1282,9 +1285,7 @@ async def update_blog_post(
             select(BlogCategory).where(BlogCategory.id == post_data.category_id)
         )
         if not result.scalar_one_or_none():
-            raise ResourceNotFoundError(
-                f"Category with ID {post_data.category_id} not found"
-            )
+            raise ResourceNotFoundError("BlogCategory", post_data.category_id)
 
     # Check tags exist se provided
     if post_data.tag_ids is not None:
@@ -1294,7 +1295,7 @@ async def update_blog_post(
             )
             tags = result.scalars().all()
             if len(tags) != len(post_data.tag_ids):
-                raise ResourceNotFoundError("One or more tag IDs not found")
+                raise ResourceNotFoundError("BlogTag", "multiple", details={"message": "One or more tag IDs not found"})
             post.tags = tags
         else:
             # Clear tags
@@ -1328,7 +1329,7 @@ async def update_blog_post(
         action=AuditAction.UPDATE,
         entity_type="blog_post",
         entity_id=post.id,
-        details={"updated_fields": list(update_data.keys())},
+        changes={"updated_fields": list(update_data.keys())},
     )
 
     await db.commit()
@@ -1375,7 +1376,7 @@ async def delete_blog_post(
         action=AuditAction.DELETE,
         entity_type="blog_post",
         entity_id=post.id,
-        details={"title": post.title, "slug": post.slug},
+        changes={"title": post.title, "slug": post.slug},
     )
 
     await db.delete(post)
@@ -1432,7 +1433,7 @@ async def toggle_publish_blog_post(
         action=AuditAction.UPDATE,
         entity_type="blog_post",
         entity_id=post.id,
-        details={"action": action_type},
+        changes={"action": action_type},
     )
 
     await db.commit()

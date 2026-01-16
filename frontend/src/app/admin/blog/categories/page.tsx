@@ -33,6 +33,24 @@ interface BlogTag {
   slug: string;
 }
 
+// Utility function to generate slug from name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[àáâãäå]/g, 'a')
+    .replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i')
+    .replace(/[òóôõö]/g, 'o')
+    .replace(/[ùúûü]/g, 'u')
+    .replace(/[ñ]/g, 'n')
+    .replace(/[ç]/g, 'c')
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')      // Replace spaces with hyphens
+    .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+};
+
 export default function AdminBlogCategoriesPage() {
   const router = useRouter();
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
@@ -65,12 +83,12 @@ export default function AdminBlogCategoriesPage() {
 
     try {
       const [categoriesRes, tagsRes] = await Promise.all([
-        apiClient.get<{ categories: BlogCategory[] }>('/api/v1/cms/blog/categories'),
-        apiClient.get<{ tags: BlogTag[] }>('/api/v1/cms/blog/tags'),
+        apiClient.get<BlogCategory[]>('/api/v1/cms/blog/categories'),
+        apiClient.get<BlogTag[]>('/api/v1/cms/blog/tags'),
       ]);
 
-      setCategories(categoriesRes.categories);
-      setTags(tagsRes.tags);
+      setCategories(categoriesRes || []);
+      setTags(tagsRes || []);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -85,6 +103,7 @@ export default function AdminBlogCategoriesPage() {
     try {
       await apiClient.post('/api/v1/cms/blog/categories', {
         name: newCategory.name,
+        slug: generateSlug(newCategory.name),
         description: newCategory.description || undefined,
       });
 
@@ -115,6 +134,7 @@ export default function AdminBlogCategoriesPage() {
     try {
       await apiClient.post('/api/v1/cms/blog/tags', {
         name: newTag,
+        slug: generateSlug(newTag),
       });
 
       setNewTag('');

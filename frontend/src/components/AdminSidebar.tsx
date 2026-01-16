@@ -58,16 +58,10 @@ const navItems: NavItem[] = [
     description: 'Gestione post del blog',
   },
   {
-    title: 'Categorie',
+    title: 'Categorie & Tag',
     href: '/admin/blog/categories',
     icon: FolderOpen,
-    description: 'Categorie del blog',
-  },
-  {
-    title: 'Tag',
-    href: '/admin/blog/tags',
-    icon: Tag,
-    description: 'Tag del blog',
+    description: 'Categorie e tag del blog',
   },
   {
     title: 'Servizi',
@@ -89,16 +83,17 @@ const navItems: NavItem[] = [
   },
   {
     title: 'Knowledge Base',
-    href: '/admin/knowledge',
+    href: '/admin/knowledge-base',
     icon: Database,
     description: 'Gestione knowledge base',
   },
-  {
-    title: 'Impostazioni',
-    href: '/admin/settings',
-    icon: Settings,
-    description: 'Configurazione sistema',
-  },
+  // TODO: Implementare pagina settings
+  // {
+  //   title: 'Impostazioni',
+  //   href: '/admin/settings',
+  //   icon: Settings,
+  //   description: 'Configurazione sistema',
+  // },
 ];
 
 export function AdminSidebar() {

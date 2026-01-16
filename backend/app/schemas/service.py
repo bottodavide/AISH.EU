@@ -7,6 +7,7 @@ Data: 2026-01-15
 
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import Field
 
@@ -100,7 +101,7 @@ class ServiceContentBase(BaseSchema):
 class ServiceContentCreate(ServiceContentBase):
     """Schema per creazione service content"""
 
-    service_id: Optional[str] = Field(None, description="ID servizio (auto se creato con service)")
+    service_id: Optional[UUID] = Field(None, description="ID servizio (auto se creato con service)")
 
 
 class ServiceContentUpdate(BaseSchema):
@@ -115,7 +116,7 @@ class ServiceContentUpdate(BaseSchema):
 class ServiceContentResponse(ServiceContentBase, UUIDTimestampSchema):
     """Schema per response service content"""
 
-    service_id: str = Field(description="ID servizio")
+    service_id: UUID = Field(description="ID servizio")
 
 
 # =============================================================================
@@ -134,7 +135,7 @@ class ServiceFAQBase(BaseSchema):
 class ServiceFAQCreate(ServiceFAQBase):
     """Schema per creazione service FAQ"""
 
-    service_id: Optional[str] = Field(None, description="ID servizio")
+    service_id: Optional[UUID] = Field(None, description="ID servizio")
 
 
 class ServiceFAQUpdate(BaseSchema):
@@ -148,7 +149,7 @@ class ServiceFAQUpdate(BaseSchema):
 class ServiceFAQResponse(ServiceFAQBase, UUIDTimestampSchema):
     """Schema per response service FAQ"""
 
-    service_id: str = Field(description="ID servizio")
+    service_id: UUID = Field(description="ID servizio")
 
 
 # =============================================================================
@@ -168,7 +169,7 @@ class ServiceImageBase(BaseSchema):
 class ServiceImageCreate(ServiceImageBase):
     """Schema per creazione service image"""
 
-    service_id: Optional[str] = Field(None, description="ID servizio")
+    service_id: Optional[UUID] = Field(None, description="ID servizio")
 
 
 class ServiceImageUpdate(BaseSchema):
@@ -182,7 +183,7 @@ class ServiceImageUpdate(BaseSchema):
 class ServiceImageResponse(ServiceImageBase, UUIDTimestampSchema):
     """Schema per response service image"""
 
-    service_id: str = Field(description="ID servizio")
+    service_id: UUID = Field(description="ID servizio")
 
 
 # =============================================================================

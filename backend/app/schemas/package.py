@@ -20,7 +20,7 @@ from app.schemas.base import BaseSchema
 
 class ServiceReference(BaseSchema):
     """Riferimento minimale a un servizio incluso nel pacchetto"""
-    id: str
+    id: UUID
     slug: str
     name: str
     short_description: Optional[str] = None
@@ -101,7 +101,7 @@ class ConsultingPackageUpdate(BaseSchema):
 
 class ConsultingPackageResponse(ConsultingPackageBase):
     """Schema per response pacchetto"""
-    id: str
+    id: UUID
     services: List[ServiceReference] = Field(default_factory=list, description="Servizi inclusi")
     purchased_count: int = Field(description="Numero di acquisti")
     discount_percentage: Optional[int] = Field(None, description="Percentuale di sconto")
@@ -124,7 +124,7 @@ class ConsultingPackageListResponse(BaseSchema):
 
 class ConsultingPackagePublicResponse(BaseSchema):
     """Schema pubblico semplificato per listing frontend"""
-    id: str
+    id: UUID
     name: str
     slug: str
     short_description: Optional[str]

@@ -69,8 +69,8 @@ class UserProfileResponse(UserProfileBase, UUIDTimestampSchema):
     address_city: Optional[str] = Field(None, description="Città")
     address_state: Optional[str] = Field(None, description="Provincia/Stato")
     address_postal_code: Optional[str] = Field(None, description="CAP")
-    address_country: str = Field(description="Codice paese")
-    billing_same_as_address: bool = Field(description="Se indirizzo fatturazione = principale")
+    address_country: Optional[str] = Field(None, description="Codice paese")
+    billing_same_as_address: Optional[bool] = Field(None, description="Se indirizzo fatturazione = principale")
     billing_street: Optional[str] = Field(None, description="Indirizzo fatturazione")
     billing_city: Optional[str] = Field(None, description="Città fatturazione")
     billing_state: Optional[str] = Field(None, description="Provincia fatturazione")
@@ -117,7 +117,7 @@ class UserResponse(UUIDTimestampSchema):
     is_active: bool = Field(description="Se account è attivo")
     is_email_verified: bool = Field(description="Se email è verificata")
     mfa_enabled: bool = Field(description="Se MFA è abilitato")
-    last_login_at: Optional[datetime] = Field(None, description="Ultimo login")
+    last_login: Optional[datetime] = Field(None, description="Ultimo login")
 
     # Dati profilo diretti per comodità (derivati da profile)
     first_name: Optional[str] = Field(None, description="Nome (da profile)")
@@ -170,7 +170,6 @@ class CurrentUserResponse(UserResponse):
     """Schema per current user (GET /me)"""
 
     # Include più dettagli per utente corrente
-    email_verification_sent_at: Optional[datetime] = Field(None, description="Data invio verifica email")
     failed_login_attempts: int = Field(description="Tentativi login falliti")
 
 

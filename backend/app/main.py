@@ -89,14 +89,23 @@ app = FastAPI(
 # Middleware Configuration
 # =============================================================================
 
-# CORS Middleware
+# CORS Middleware - Configurazione esplicita per frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.CORS_ORIGINS,  # http://localhost:3000, https://aistrategyhub.eu
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["X-Request-ID"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+    ],
+    expose_headers=["X-Request-ID", "Content-Length", "Content-Type"],
+    max_age=600,  # Cache preflight per 10 minuti
 )
 
 # Gzip Compression

@@ -52,8 +52,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Login successful, redirect
-      router.push(redirect);
+      // Login successful, redirect based on role
+      const userRole = response.user?.role;
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        router.push('/admin');
+      } else {
+        router.push(redirect);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       setIsLoading(false);
@@ -81,8 +86,13 @@ export default function LoginPage() {
         throw new Error('MFA verification failed');
       }
 
-      // Login successful, redirect
-      router.push(redirect);
+      // Login successful, redirect based on role
+      const userRole = response.user?.role;
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        router.push('/admin');
+      } else {
+        router.push(redirect);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'MFA verification failed');
       setIsLoading(false);

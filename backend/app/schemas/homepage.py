@@ -7,6 +7,7 @@ Data: 2026-01-16
 
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 from pydantic import Field, HttpUrl
 
 from app.schemas.base import BaseSchema
@@ -57,7 +58,7 @@ class HomepageBannerUpdate(BaseSchema):
 
 class HomepageBannerResponse(HomepageBannerBase):
     """Schema per response banner"""
-    id: str
+    id: UUID
     created_at: datetime
     updated_at: datetime
 

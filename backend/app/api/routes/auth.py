@@ -359,7 +359,7 @@ async def login(
     # Login successful - reset failed attempts
     user.failed_login_attempts = 0
     user.locked_until = None
-    user.last_login_at = datetime.utcnow()
+    user.last_login = datetime.utcnow()
     await db.commit()
 
     # Crea JWT tokens
