@@ -21,8 +21,15 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // DEBUG: Log user data in admin layout
+    console.log('[AdminLayout] User:', user);
+    console.log('[AdminLayout] User role:', user?.role);
+    console.log('[AdminLayout] isAuthenticated:', isAuthenticated);
+    console.log('[AdminLayout] isLoading:', isLoading);
+
     // Redirect non-authenticated users to login
     if (!isLoading && !isAuthenticated) {
+      console.log('[AdminLayout] Redirecting to login - not authenticated');
       router.push('/login?redirect=/admin');
       return;
     }
@@ -30,7 +37,11 @@ export default function AdminLayout({
     // Redirect non-admin users to dashboard
     if (!isLoading && isAuthenticated && user) {
       const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+      console.log('[AdminLayout] isAdmin check:', isAdmin);
+      console.log('[AdminLayout] Checking role:', user.role, '=== admin?', user.role === 'admin', '|| === super_admin?', user.role === 'super_admin');
+
       if (!isAdmin) {
+        console.log('[AdminLayout] Redirecting to dashboard - not admin');
         router.push('/dashboard');
       }
     }
@@ -52,9 +63,16 @@ export default function AdminLayout({
 
   // Check if user is admin
   const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+
+  console.log('[AdminLayout] Final render check - isAdmin:', isAdmin);
+  console.log('[AdminLayout] Final render check - user.role:', user.role);
+
   if (!isAdmin) {
+    console.log('[AdminLayout] Not rendering - not admin');
     return null;
   }
+
+  console.log('[AdminLayout] Rendering admin layout with sidebar');
 
   return (
     <div className="min-h-screen bg-background">

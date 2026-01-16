@@ -105,6 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Recupera user info dal backend
       const userData = await apiClient.get<User>('/api/v1/users/me');
+
+      // DEBUG: Log user data to console
+      console.log('[AuthContext] User data received from API:', userData);
+      console.log('[AuthContext] User role:', userData.role);
+      console.log('[AuthContext] User role type:', typeof userData.role);
+
       setUser(userData);
 
       // Salva user in localStorage per persistence
@@ -127,6 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
       const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', credentials);
+
+      // DEBUG: Log login response
+      console.log('[AuthContext] Login response:', response);
+      console.log('[AuthContext] User from login:', response.user);
+      console.log('[AuthContext] User role from login:', response.user?.role);
 
       // Salva tokens
       apiClient.setTokens(response.access_token, response.refresh_token);
