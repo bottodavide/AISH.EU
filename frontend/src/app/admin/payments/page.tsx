@@ -8,11 +8,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { CreditCard, Search, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -44,6 +46,8 @@ interface PaymentStats {
 }
 
 export default function AdminPaymentsPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,8 +56,16 @@ export default function AdminPaymentsPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    loadData();
-  }, [filterStatus]);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadData();
+    }
+  }, [isAuthenticated, isAdmin, filterStatus]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -162,6 +174,17 @@ export default function AdminPaymentsPage() {
       payment.stripe_charge_id?.toLowerCase().includes(search)
     );
   });
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <div className="container py-12">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">

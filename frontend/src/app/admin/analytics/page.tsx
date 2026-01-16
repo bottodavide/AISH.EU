@@ -8,11 +8,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { TrendingUp, Users, Eye, ShoppingCart, DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface AnalyticsStats {
@@ -50,6 +52,8 @@ interface TimeSeriesData {
 type TimeRange = 'today' | 'week' | 'month' | 'year';
 
 export default function AdminAnalyticsPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [topPages, setTopPages] = useState<TopPage[]>([]);
   const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
@@ -59,8 +63,16 @@ export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
 
   useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadAnalytics();
+    }
+  }, [isAuthenticated, isAdmin, timeRange]);
 
   const loadAnalytics = async () => {
     setIsLoading(true);
@@ -189,6 +201,17 @@ export default function AdminAnalyticsPage() {
       </div>
     );
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <div className="container py-12">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">

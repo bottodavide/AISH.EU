@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 
 interface Document {
@@ -48,6 +49,7 @@ interface DocumentsResponse {
 
 export default function KnowledgeBasePage() {
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,12 +61,20 @@ export default function KnowledgeBasePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [processingDocId, setProcessingDocId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
   const topics = ['AI', 'GDPR', 'NIS2', 'CYBERSECURITY', 'GENERAL'];
   const statuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'];
 
   useEffect(() => {
-    loadDocuments();
-  }, [currentPage, filterTopic, filterStatus, filterActive, searchQuery]);
+    if (isAuthenticated && isAdmin) {
+      loadDocuments();
+    }
+  }, [isAuthenticated, isAdmin, currentPage, filterTopic, filterStatus, filterActive, searchQuery]);
 
   const loadDocuments = async () => {
     try {
@@ -193,14 +203,31 @@ export default function KnowledgeBasePage() {
     return colors[topic] || colors.GENERAL;
   };
 
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Caricamento...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   if (loading && documents.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Caricamento...</p>
+      <>
+        <Navigation />
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="mt-2 text-sm text-muted-foreground">Caricamento documenti...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

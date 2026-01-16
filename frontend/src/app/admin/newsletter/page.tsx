@@ -8,6 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Download, Search, Users, UserCheck, UserX, Mail, TrendingUp } from 'lucide-react';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { handleApiError } from '@/lib/error-handler';
 
 // Types
@@ -60,6 +62,8 @@ interface SubscriberListResponse {
 }
 
 export default function AdminNewsletterPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [stats, setStats] = useState<NewsletterStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,15 +78,26 @@ export default function AdminNewsletterPage() {
 
   const pageSize = 20;
 
-  // Load stats
+  // Redirect if not admin
   useEffect(() => {
-    loadStats();
-  }, []);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
 
-  // Load subscribers
+  // Load stats only if authenticated and admin
   useEffect(() => {
-    loadSubscribers();
-  }, [currentPage, statusFilter, searchQuery]);
+    if (isAuthenticated && isAdmin) {
+      loadStats();
+    }
+  }, [isAuthenticated, isAdmin]);
+
+  // Load subscribers only if authenticated and admin
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadSubscribers();
+    }
+  }, [isAuthenticated, isAdmin, currentPage, statusFilter, searchQuery]);
 
   const loadStats = async () => {
     try {
@@ -185,6 +200,20 @@ export default function AdminNewsletterPage() {
       minute: '2-digit',
     });
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Caricamento...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

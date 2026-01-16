@@ -39,7 +39,13 @@ export default function TermsPage() {
       );
       setPage(response);
     } catch (err: any) {
-      setError(getErrorMessage(err));
+      // Se è 404, usa il contenuto fallback senza mostrare errore
+      if (err.response?.status === 404) {
+        setPage(null); // Mostra il contenuto fallback statico
+      } else {
+        // Altri errori (500, ecc.) vengono mostrati
+        setError(getErrorMessage(err));
+      }
     } finally {
       setIsLoading(false);
     }

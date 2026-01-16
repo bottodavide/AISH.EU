@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface UseCase {
@@ -37,6 +39,8 @@ interface UseCasesResponse {
 }
 
 export default function AdminUseCasesPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [useCases, setUseCases] = useState<UseCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +48,19 @@ export default function AdminUseCasesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Redirect if not admin
   useEffect(() => {
-    loadUseCases();
-  }, [currentPage, filterIndustry]);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  // Load data only if authenticated and admin
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadUseCases();
+    }
+  }, [isAuthenticated, isAdmin, currentPage, filterIndustry]);
 
   const loadUseCases = async () => {
     setIsLoading(true);
@@ -114,6 +128,20 @@ export default function AdminUseCasesPage() {
       alert(getErrorMessage(err));
     }
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Caricamento...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

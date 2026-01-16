@@ -247,20 +247,9 @@ export function ChatWidget() {
         {messages.length === 0 && !isLoading && (
           <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
             <MessageCircle className="mb-4 h-12 w-12 opacity-50" />
-            <p className="text-sm">
-              Ciao! Sono il tuo assistente AI.
-              <br />
-              Come posso aiutarti oggi?
+            <p className="text-sm px-4">
+              Ciao! Sono il tuo assistente AI. Posso aiutarti a ricevere informazioni sui servizi erogati in ambito Cybersecurity, Compliance, AI e GDPR
             </p>
-            <div className="mt-4 text-xs">
-              <p className="mb-1 font-medium">Posso aiutarti con:</p>
-              <ul className="space-y-1">
-                <li>• Intelligenza Artificiale</li>
-                <li>• GDPR</li>
-                <li>• Cybersecurity</li>
-                <li>• NIS2</li>
-              </ul>
-            </div>
           </div>
         )}
 

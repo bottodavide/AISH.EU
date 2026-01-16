@@ -7,19 +7,29 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
 import { Settings, Save, Globe, Mail, CreditCard, Shield, Bell } from 'lucide-react';
 
 export default function AdminSettingsPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
 
   // General Settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -73,6 +83,17 @@ export default function AdminSettingsPage() {
       setIsSaving(false);
     }
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <div className="container py-12">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8 max-w-5xl">

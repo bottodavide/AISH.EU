@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2, Eye, EyeOff, FileText } from 'lucide-react';
 
 interface Page {
@@ -40,6 +41,7 @@ interface PagesResponse {
 
 export default function AdminPagesPage() {
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +49,16 @@ export default function AdminPagesPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPages();
-  }, [filterType, filterStatus]);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadPages();
+    }
+  }, [isAuthenticated, isAdmin, filterType, filterStatus]);
 
   const loadPages = async () => {
     setIsLoading(true);
@@ -134,6 +144,17 @@ export default function AdminPagesPage() {
       </span>
     );
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <div className="container py-12">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">

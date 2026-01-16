@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Trash2, Loader2, Save, Eye, EyeOff, X } from 'lucide-react';
 
 interface SpecializationArea {
@@ -48,6 +49,7 @@ interface AboutPage {
 
 export default function AdminAboutPage() {
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,9 +71,19 @@ export default function AdminAboutPage() {
   const [newBadge, setNewBadge] = useState('');
   const [newFeature, setNewFeature] = useState<{ [key: number]: string }>({});
 
+  // Redirect if not admin
   useEffect(() => {
-    loadAboutPage();
-  }, []);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  // Load data only if authenticated and admin
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadAboutPage();
+    }
+  }, [isAuthenticated, isAdmin]);
 
   const loadAboutPage = async () => {
     setIsLoading(true);
@@ -211,7 +223,7 @@ export default function AdminAboutPage() {
     updateCompetence(compIndex, 'features', features);
   };
 
-  if (isLoading) {
+  if (authLoading || !isAuthenticated || !isAdmin) {
     return (
       <>
         <Navigation />
@@ -219,6 +231,20 @@ export default function AdminAboutPage() {
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Caricamento...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Caricamento dati...</p>
           </div>
         </main>
       </>

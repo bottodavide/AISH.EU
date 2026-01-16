@@ -8,6 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Image as ImageIcon } from 'lucide-react';
 
 interface Banner {
@@ -47,6 +49,8 @@ interface BannersResponse {
 }
 
 export default function AdminBannersPage() {
+  const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +58,16 @@ export default function AdminBannersPage() {
   const [filterActive, setFilterActive] = useState<boolean | null>(null);
 
   useEffect(() => {
-    loadBanners();
-  }, [filterPosition, filterActive]);
+    if (!authLoading && (!isAuthenticated || !isAdmin)) {
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      loadBanners();
+    }
+  }, [isAuthenticated, isAdmin, filterPosition, filterActive]);
 
   const loadBanners = async () => {
     setIsLoading(true);
@@ -147,6 +159,20 @@ export default function AdminBannersPage() {
     section: 'Sezione',
     footer: 'Footer',
   };
+
+  if (authLoading || !isAuthenticated || !isAdmin) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-muted-foreground">Caricamento...</p>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

@@ -6,7 +6,8 @@ Data: 2026-01-16
 """
 
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from uuid import UUID
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
@@ -33,12 +34,11 @@ class SpecializationAreaUpdate(BaseModel):
 
 class SpecializationAreaResponse(SpecializationAreaBase):
     """Schema per risposta area di specializzazione"""
-    id: str
+    id: UUID
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ========== Competence Section Schemas ==========
@@ -68,12 +68,11 @@ class CompetenceSectionUpdate(BaseModel):
 
 class CompetenceSectionResponse(CompetenceSectionBase):
     """Schema per risposta sezione di competenza"""
-    id: str
+    id: UUID
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ========== About Page Schemas ==========
@@ -108,11 +107,10 @@ class AboutPageUpdate(BaseModel):
 
 class AboutPageResponse(AboutPageBase):
     """Schema per risposta pagina About"""
-    id: str
+    id: UUID
     specialization_areas: List[SpecializationAreaResponse] = Field(default_factory=list)
     competence_sections: List[CompetenceSectionResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
