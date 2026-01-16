@@ -509,9 +509,11 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="pt-4 border-t space-y-3">
-                    <Button variant="outline" className="w-full">
-                      Modifica Profilo
-                    </Button>
+                    <Link href="/dashboard/profile" className="block">
+                      <Button variant="outline" className="w-full">
+                        Modifica Profilo
+                      </Button>
+                    </Link>
                     <Link href="/dashboard/security" className="block">
                       <Button variant="outline" className="w-full">
                         Sicurezza & Password
