@@ -8,9 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -47,8 +45,7 @@ interface RecentOrder {
 }
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
@@ -56,19 +53,12 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if not admin
-  useEffect(() => {
-    if (!authLoading && (!isAuthenticated || !isAdmin)) {
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, isAdmin, router]);
-
   // Load admin data
   useEffect(() => {
-    if (isAuthenticated && isAdmin) {
+    if (isAuthenticated) {
       loadAdminData();
     }
-  }, [isAuthenticated, isAdmin]);
+  }, [isAuthenticated]);
 
   const loadAdminData = async () => {
     setIsLoading(true);
@@ -117,22 +107,8 @@ export default function AdminDashboardPage() {
     }).format(amount);
   };
 
-  if (authLoading || !isAuthenticated || !isAdmin) {
-    return (
-      <>
-        <Navigation />
-        <div className="container flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </>
-    );
-  }
-
   return (
-    <>
-      <Navigation />
-
-      <main className="container py-12">
+    <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
@@ -470,7 +446,6 @@ export default function AdminDashboardPage() {
             </Card>
           </div>
         )}
-      </main>
-    </>
+    </div>
   );
 }

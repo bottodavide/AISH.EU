@@ -1,0 +1,416 @@
+"""
+Modulo: admin.py
+Descrizione: API routes per amministrazione sistema
+Autore: Claude per Davide
+Data: 2026-01-16
+"""
+
+import logging
+from typing import Optional
+from uuid import UUID
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select, func, and_, or_
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_async_db
+from app.core.dependencies import require_admin, get_current_user
+from app.core.exceptions import ResourceNotFoundError, BusinessLogicError
+from app.models.user import User, UserRole, UserProfile
+from app.models.cms import BlogPost, BlogCategory, BlogTag
+from app.models.service import Service
+from app.models.order import Order, OrderStatus
+from app.models.invoice import Invoice, InvoiceStatus
+from app.schemas.base import SuccessResponse
+from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/admin", tags=["Admin"])
+
+
+# =============================================================================
+# SCHEMAS
+# =============================================================================
+
+class AdminStats(BaseModel):
+    """Statistiche admin dashboard"""
+    total_users: int = Field(description="Totale utenti registrati")
+    total_orders: int = Field(description="Totale ordini")
+    total_revenue: float = Field(description="Fatturato totale")
+    total_services: int = Field(description="Totale servizi")
+    total_blog_posts: int = Field(description="Totale articoli blog")
+    pending_orders: int = Field(description="Ordini in attesa")
+    unpaid_invoices: int = Field(description="Fatture non pagate")
+    total_categories: int = Field(description="Totale categorie blog")
+    total_tags: int = Field(description="Totale tag blog")
+    users_last_30_days: int = Field(description="Nuovi utenti ultimi 30 giorni")
+    posts_last_30_days: int = Field(description="Nuovi post ultimi 30 giorni")
+
+
+class UserListItem(BaseModel):
+    """User item in list"""
+    id: str
+    email: str
+    role: str
+    is_active: bool
+    is_email_verified: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    company_name: Optional[str] = None
+
+
+class UserListResponse(BaseModel):
+    """Response for user list"""
+    users: list[UserListItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class UserUpdateRequest(BaseModel):
+    """Request to update user"""
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    is_email_verified: Optional[bool] = None
+
+
+# =============================================================================
+# ADMIN STATS
+# =============================================================================
+
+@router.get("/stats", response_model=AdminStats)
+async def get_admin_stats(
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+) -> AdminStats:
+    """
+    Get admin dashboard statistics.
+
+    Requires: admin or super_admin role
+    """
+    logger.info(f"Admin {current_user.email} requesting stats")
+
+    # Calculate date for last 30 days
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+
+    # Total users
+    total_users_query = select(func.count()).select_from(User)
+    total_users_result = await db.execute(total_users_query)
+    total_users = total_users_result.scalar() or 0
+
+    # Users last 30 days
+    users_30d_query = select(func.count()).select_from(User).where(
+        User.created_at >= thirty_days_ago
+    )
+    users_30d_result = await db.execute(users_30d_query)
+    users_last_30_days = users_30d_result.scalar() or 0
+
+    # Total blog posts
+    total_posts_query = select(func.count()).select_from(BlogPost)
+    total_posts_result = await db.execute(total_posts_query)
+    total_blog_posts = total_posts_result.scalar() or 0
+
+    # Posts last 30 days
+    posts_30d_query = select(func.count()).select_from(BlogPost).where(
+        BlogPost.created_at >= thirty_days_ago
+    )
+    posts_30d_result = await db.execute(posts_30d_query)
+    posts_last_30_days = posts_30d_result.scalar() or 0
+
+    # Total services
+    total_services_query = select(func.count()).select_from(Service)
+    total_services_result = await db.execute(total_services_query)
+    total_services = total_services_result.scalar() or 0
+
+    # Total categories
+    total_categories_query = select(func.count()).select_from(BlogCategory)
+    total_categories_result = await db.execute(total_categories_query)
+    total_categories = total_categories_result.scalar() or 0
+
+    # Total tags
+    total_tags_query = select(func.count()).select_from(BlogTag)
+    total_tags_result = await db.execute(total_tags_query)
+    total_tags = total_tags_result.scalar() or 0
+
+    # Total orders
+    total_orders_query = select(func.count()).select_from(Order)
+    total_orders_result = await db.execute(total_orders_query)
+    total_orders = total_orders_result.scalar() or 0
+
+    # Pending orders (PENDING status)
+    pending_orders_query = select(func.count()).select_from(Order).where(
+        Order.status == OrderStatus.PENDING
+    )
+    pending_orders_result = await db.execute(pending_orders_query)
+    pending_orders = pending_orders_result.scalar() or 0
+
+    # Total revenue (sum of completed orders)
+    revenue_query = select(func.sum(Order.total_amount)).where(
+        Order.status == OrderStatus.COMPLETED
+    )
+    revenue_result = await db.execute(revenue_query)
+    total_revenue = float(revenue_result.scalar() or 0)
+
+    # Unpaid invoices
+    unpaid_invoices_query = select(func.count()).select_from(Invoice).where(
+        or_(
+            Invoice.status == InvoiceStatus.PENDING,
+            Invoice.status == InvoiceStatus.OVERDUE
+        )
+    )
+    unpaid_invoices_result = await db.execute(unpaid_invoices_query)
+    unpaid_invoices = unpaid_invoices_result.scalar() or 0
+
+    return AdminStats(
+        total_users=total_users,
+        total_orders=total_orders,
+        total_revenue=total_revenue,
+        total_services=total_services,
+        total_blog_posts=total_blog_posts,
+        pending_orders=pending_orders,
+        unpaid_invoices=unpaid_invoices,
+        total_categories=total_categories,
+        total_tags=total_tags,
+        users_last_30_days=users_last_30_days,
+        posts_last_30_days=posts_last_30_days,
+    )
+
+
+# =============================================================================
+# USER MANAGEMENT
+# =============================================================================
+
+@router.get("/users", response_model=UserListResponse)
+async def list_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = Query(None),
+    role: Optional[UserRole] = Query(None),
+    is_active: Optional[bool] = Query(None),
+    sort_by: str = Query("created_at", regex="^(created_at|email|last_login)$"),
+    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+) -> UserListResponse:
+    """
+    List all users with filtering and pagination.
+
+    Requires: admin or super_admin role
+    """
+    logger.info(f"Admin {current_user.email} listing users")
+
+    # Build base query
+    query = select(User).outerjoin(UserProfile, User.id == UserProfile.user_id)
+
+    # Apply filters
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            or_(
+                User.email.ilike(search_pattern),
+                UserProfile.first_name.ilike(search_pattern),
+                UserProfile.last_name.ilike(search_pattern),
+                UserProfile.company_name.ilike(search_pattern),
+            )
+        )
+
+    if role:
+        query = query.where(User.role == role)
+
+    if is_active is not None:
+        query = query.where(User.is_active == is_active)
+
+    # Count total
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # Apply sorting
+    if sort_by == "email":
+        order_col = User.email
+    elif sort_by == "last_login":
+        order_col = User.last_login
+    else:  # created_at
+        order_col = User.created_at
+
+    if sort_order == "asc":
+        query = query.order_by(order_col.asc())
+    else:
+        query = query.order_by(order_col.desc())
+
+    # Apply pagination
+    query = query.limit(page_size).offset((page - 1) * page_size)
+
+    # Execute query
+    result = await db.execute(query)
+    users = result.scalars().all()
+
+    # Load profiles for each user
+    user_items = []
+    for user in users:
+        # Load profile if not already loaded
+        if not user.profile:
+            profile_result = await db.execute(
+                select(UserProfile).where(UserProfile.user_id == user.id)
+            )
+            profile = profile_result.scalar_one_or_none()
+        else:
+            profile = user.profile
+
+        user_items.append(UserListItem(
+            id=str(user.id),
+            email=user.email,
+            role=user.role.value,
+            is_active=user.is_active,
+            is_email_verified=user.is_email_verified,
+            created_at=user.created_at,
+            last_login=user.last_login,
+            first_name=profile.first_name if profile else None,
+            last_name=profile.last_name if profile else None,
+            company_name=profile.company_name if profile else None,
+        ))
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return UserListResponse(
+        users=user_items,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
+
+
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: UUID,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+):
+    """Get specific user details"""
+    logger.info(f"Admin {current_user.email} getting user {user_id}")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise ResourceNotFoundError(resource_type="User", resource_id=str(user_id))
+
+    # Load profile
+    profile_result = await db.execute(
+        select(UserProfile).where(UserProfile.user_id == user_id)
+    )
+    profile = profile_result.scalar_one_or_none()
+
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "role": user.role.value,
+        "is_active": user.is_active,
+        "is_email_verified": user.is_email_verified,
+        "mfa_enabled": user.mfa_enabled,
+        "created_at": user.created_at,
+        "last_login": user.last_login,
+        "profile": {
+            "first_name": profile.first_name if profile else None,
+            "last_name": profile.last_name if profile else None,
+            "company_name": profile.company_name if profile else None,
+            "phone": profile.phone if profile else None,
+        } if profile else None,
+    }
+
+
+@router.put("/users/{user_id}", response_model=SuccessResponse)
+async def update_user(
+    user_id: UUID,
+    data: UserUpdateRequest,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+) -> SuccessResponse:
+    """
+    Update user (role, active status, etc.)
+
+    Requires: admin or super_admin role
+    """
+    logger.info(f"Admin {current_user.email} updating user {user_id}")
+
+    # Load user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise ResourceNotFoundError(resource_type="User", resource_id=str(user_id))
+
+    # Can't modify super admin unless you're super admin
+    if user.role == UserRole.SUPER_ADMIN and current_user.role != UserRole.SUPER_ADMIN:
+        raise BusinessLogicError(
+            message="Only super admins can modify super admin users"
+        )
+
+    # Update fields
+    if data.role is not None:
+        user.role = data.role
+
+    if data.is_active is not None:
+        user.is_active = data.is_active
+
+    if data.is_email_verified is not None:
+        user.is_email_verified = data.is_email_verified
+
+    await db.commit()
+
+    logger.info(f"User {user_id} updated successfully")
+
+    return SuccessResponse(
+        message="User updated successfully",
+        data={"user_id": str(user_id)},
+    )
+
+
+@router.delete("/users/{user_id}", response_model=SuccessResponse)
+async def delete_user(
+    user_id: UUID,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_async_db),
+) -> SuccessResponse:
+    """
+    Delete user (soft delete by setting is_active=False)
+
+    Requires: admin or super_admin role
+    """
+    logger.info(f"Admin {current_user.email} deleting user {user_id}")
+
+    # Load user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise ResourceNotFoundError(resource_type="User", resource_id=str(user_id))
+
+    # Can't delete super admin
+    if user.role == UserRole.SUPER_ADMIN:
+        raise BusinessLogicError(message="Cannot delete super admin users")
+
+    # Can't delete yourself
+    if user.id == current_user.id:
+        raise BusinessLogicError(message="Cannot delete your own account")
+
+    # Soft delete
+    user.is_active = False
+
+    await db.commit()
+
+    logger.info(f"User {user_id} deleted (soft delete)")
+
+    return SuccessResponse(
+        message="User deleted successfully",
+        data={"user_id": str(user_id)},
+    )
+
+
+logger.info("Admin router initialized")
