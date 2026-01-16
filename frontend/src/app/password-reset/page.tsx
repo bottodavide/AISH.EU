@@ -10,13 +10,15 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { handleApiError, getErrorMessage } from '@/lib/error-handler';
+import { getErrorMessage } from '@/lib/api-client';
 import apiClient from '@/lib/api-client';
+import { Key, CheckCircle2 } from 'lucide-react';
 
 export default function PasswordResetPage() {
   const searchParams = useSearchParams();
@@ -39,19 +41,31 @@ export default function PasswordResetPage() {
     }
   }, [token]);
 
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 8) {
+      return 'La password deve essere di almeno 8 caratteri';
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return 'La password deve contenere almeno una lettera maiuscola';
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return 'La password deve contenere almeno un numero';
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pwd)) {
+      return 'La password deve contenere almeno un carattere speciale';
+    }
+    return null;
+  };
+
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/auth/request-password-reset', { email });
+      await apiClient.post('/api/v1/auth/password-reset', { email });
       setSuccess(true);
     } catch (err: any) {
-      if (!err.response || err.response?.status >= 500 || err.code === 'ERR_NETWORK') {
-        handleApiError(err);
-        return;
-      }
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
@@ -67,24 +81,21 @@ export default function PasswordResetPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('La password deve essere di almeno 8 caratteri');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await apiClient.post('/api/v1/auth/reset-password', {
+      await apiClient.post('/api/v1/auth/password-reset/confirm', {
         token,
         new_password: password,
       });
       setSuccess(true);
     } catch (err: any) {
-      if (!err.response || err.response?.status >= 500 || err.code === 'ERR_NETWORK') {
-        handleApiError(err);
-        return;
-      }
       setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
@@ -94,69 +105,87 @@ export default function PasswordResetPage() {
   // Prevent hydration mismatch
   if (!isMounted) {
     return (
-      <div className="container flex items-center justify-center min-h-screen py-12">
-        <Card className="w-full max-w-md">
-          <CardContent className="py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        <Navigation />
+        <div className="container flex items-center justify-center min-h-screen py-12">
+          <Card className="w-full max-w-md">
+            <CardContent className="py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
   // Success state
   if (success) {
     return (
-      <div className="container flex items-center justify-center min-h-screen py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">
-              {step === 'request' ? 'Email Inviata!' : 'Password Reimpostata!'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert className="border-green-500/50 text-green-700 dark:text-green-400">
-              <AlertTitle>Successo</AlertTitle>
-              <AlertDescription>
-                {step === 'request' ? (
-                  <>
-                    Ti abbiamo inviato un'email all'indirizzo <strong>{email}</strong> con
-                    le istruzioni per reimpostare la password.
-                    <br /><br />
-                    Controlla la tua casella di posta (anche spam) e clicca sul link entro 1 ora.
-                  </>
-                ) : (
-                  <>
-                    La tua password è stata reimpostata con successo.
-                    Ora puoi accedere con la nuova password.
-                  </>
-                )}
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-          <CardFooter>
-            <Link href="/login" className="w-full">
-              <Button className="w-full">Vai al Login</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
+      <>
+        <Navigation />
+        <div className="container flex items-center justify-center min-h-screen py-12">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <div className="flex justify-center mb-4">
+                <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                  <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <CardTitle className="text-center">
+                {step === 'request' ? 'Email Inviata!' : 'Password Reimpostata!'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Alert className="border-green-500/50 text-green-700 dark:text-green-400">
+                <AlertTitle>Successo</AlertTitle>
+                <AlertDescription>
+                  {step === 'request' ? (
+                    <>
+                      Ti abbiamo inviato un'email all'indirizzo <strong>{email}</strong> con
+                      le istruzioni per reimpostare la password.
+                      <br /><br />
+                      Controlla la tua casella di posta (anche spam) e clicca sul link entro 1 ora.
+                    </>
+                  ) : (
+                    <>
+                      La tua password è stata reimpostata con successo.
+                      Ora puoi accedere con la nuova password.
+                    </>
+                  )}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+            <CardFooter>
+              <Link href="/login" className="w-full">
+                <Button className="w-full">Vai al Login</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </>
     );
   }
 
   // Request reset form
   if (step === 'request') {
     return (
-      <div className="container flex items-center justify-center min-h-screen py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Reimposta Password</CardTitle>
-            <CardDescription>
-              Inserisci la tua email per ricevere il link di reset
-            </CardDescription>
-          </CardHeader>
+      <>
+        <Navigation />
+        <div className="container flex items-center justify-center min-h-screen py-12">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <div className="flex justify-center mb-4">
+                <div className="p-3 rounded-full bg-primary/10">
+                  <Key className="h-8 w-8 text-primary" />
+                </div>
+              </div>
+              <CardTitle className="text-center">Reimposta Password</CardTitle>
+              <CardDescription className="text-center">
+                Inserisci la tua email per ricevere il link di reset
+              </CardDescription>
+            </CardHeader>
 
           <form onSubmit={handleRequestReset}>
             <CardContent className="space-y-4">
@@ -202,19 +231,27 @@ export default function PasswordResetPage() {
           </form>
         </Card>
       </div>
+      </>
     );
   }
 
   // Reset password form (with token)
   return (
-    <div className="container flex items-center justify-center min-h-screen py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Nuova Password</CardTitle>
-          <CardDescription>
-            Scegli una nuova password per il tuo account
-          </CardDescription>
-        </CardHeader>
+    <>
+      <Navigation />
+      <div className="container flex items-center justify-center min-h-screen py-12">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Key className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-center">Nuova Password</CardTitle>
+            <CardDescription className="text-center">
+              Scegli una nuova password per il tuo account
+            </CardDescription>
+          </CardHeader>
 
         <form onSubmit={handleResetPassword}>
           <CardContent className="space-y-4">
@@ -237,9 +274,15 @@ export default function PasswordResetPage() {
                 autoComplete="new-password"
                 disabled={isLoading}
               />
-              <p className="text-xs text-muted-foreground">
-                Minimo 8 caratteri
-              </p>
+              <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                <p>La password deve contenere:</p>
+                <ul className="list-disc list-inside ml-2">
+                  <li>Almeno 8 caratteri</li>
+                  <li>Almeno 1 lettera maiuscola</li>
+                  <li>Almeno 1 numero</li>
+                  <li>Almeno 1 carattere speciale (!@#$%^&*...)</li>
+                </ul>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -272,5 +315,6 @@ export default function PasswordResetPage() {
         </form>
       </Card>
     </div>
+    </>
   );
 }
