@@ -119,8 +119,13 @@ class UserResponse(UUIDTimestampSchema):
     mfa_enabled: bool = Field(description="Se MFA è abilitato")
     last_login_at: Optional[datetime] = Field(None, description="Ultimo login")
 
-    # Include profile se disponibile
-    profile: Optional[UserProfileResponse] = Field(None, description="Profilo utente")
+    # Dati profilo diretti per comodità (derivati da profile)
+    first_name: Optional[str] = Field(None, description="Nome (da profile)")
+    last_name: Optional[str] = Field(None, description="Cognome (da profile)")
+    company_name: Optional[str] = Field(None, description="Ragione sociale (da profile)")
+
+    # Include profile se disponibile (full details)
+    profile: Optional[UserProfileResponse] = Field(None, description="Profilo utente completo")
 
 
 class UserDetailResponse(UserResponse):

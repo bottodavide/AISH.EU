@@ -286,6 +286,27 @@ function translateErrorMessage(message: string): string {
 /**
  * Estrae messaggio errore da AxiosError
  */
+/**
+ * Controlla se un errore è un 404 (risorsa non trovata)
+ */
+export function isNotFoundError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) {
+    return error.response?.status === 404;
+  }
+  return false;
+}
+
+/**
+ * Controlla se un errore è un errore di rete (server non raggiungibile)
+ */
+export function isNetworkError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) {
+    // Network error: request sent but no response received
+    return !!error.request && !error.response;
+  }
+  return false;
+}
+
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<any>;

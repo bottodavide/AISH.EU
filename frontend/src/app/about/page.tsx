@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import apiClient, { getErrorMessage } from '@/lib/api-client';
+import apiClient, { getErrorMessage, isNotFoundError, isNetworkError } from '@/lib/api-client';
 
 interface PageContent {
   id: string;
@@ -44,13 +44,12 @@ export default function AboutPage() {
       );
       setPage(response);
     } catch (err: any) {
-      // Se è 404 (pagina non trovata), mostra contenuto statico senza errore
-      const errorMsg = getErrorMessage(err);
-      if (errorMsg?.includes('404') || errorMsg?.includes('Not Found') || errorMsg?.includes('non trovata')) {
+      // Se è 404 (pagina CMS non esiste), usa contenuto statico senza mostrare errore
+      if (isNotFoundError(err)) {
         setPage(null); // Usa contenuto statico di fallback
       } else {
-        // Solo per errori reali (500, network, etc)
-        setError(errorMsg);
+        // Solo per errori reali (500, network, etc) mostra errore
+        setError(getErrorMessage(err));
       }
     } finally {
       setIsLoading(false);

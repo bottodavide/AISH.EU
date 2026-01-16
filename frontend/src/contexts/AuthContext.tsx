@@ -31,6 +31,10 @@ export interface User {
   mfa_enabled: boolean;
   last_login: string | null;
   created_at: string;
+  // Dati profilo (opzionali)
+  first_name?: string | null;
+  last_name?: string | null;
+  company_name?: string | null;
 }
 
 export interface LoginCredentials {

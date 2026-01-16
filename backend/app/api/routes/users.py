@@ -88,6 +88,10 @@ async def get_current_user_info(
         "created_at": current_user.created_at,
         "updated_at": current_user.updated_at,
         "profile": profile,
+        # Popola dati profilo diretti per comodità frontend
+        "first_name": profile.first_name if profile else None,
+        "last_name": profile.last_name if profile else None,
+        "company_name": profile.company_name if profile else None,
     }
 
     return CurrentUserResponse(**response_data)

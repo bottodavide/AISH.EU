@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import apiClient, { getErrorMessage } from '@/lib/api-client';
+import apiClient, { getErrorMessage, isNotFoundError } from '@/lib/api-client';
 import { NewsletterForm } from '@/components/NewsletterForm';
 
 // Types
@@ -109,13 +109,16 @@ export default function BlogPage() {
       setPosts(response.posts || []);
       setTotalPages(response.total_pages || 0);
     } catch (err) {
-      const errorMsg = getErrorMessage(err);
-      // Solo mostra errore se non è semplicemente "nessun dato"
-      if (errorMsg && !errorMsg.includes('404')) {
-        setError(errorMsg);
+      // Se 404, mostra lista vuota senza errore (nessun post pubblicato)
+      if (isNotFoundError(err)) {
+        setPosts([]);
+        setTotalPages(0);
+      } else {
+        // Altri errori (500, network) mostra messaggio
+        setError(getErrorMessage(err));
+        setPosts([]);
+        setTotalPages(0);
       }
-      setPosts([]);
-      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
