@@ -27,7 +27,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [mfaRequired, setMfaRequired] = useState(false);
-  const [mfaSessionToken, setMfaSessionToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,9 +46,8 @@ export default function LoginPage() {
       const response = await login({ email, password });
 
       // Check if MFA required
-      if (response.mfa_required && response.mfa_session_token) {
+      if (response.mfa_required) {
         setMfaRequired(true);
-        setMfaSessionToken(response.mfa_session_token);
         setIsLoading(false);
         return;
       }
@@ -71,28 +69,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call MFA verify endpoint
-      const response = await fetch('/api/v1/auth/mfa/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_token: mfaSessionToken,
-          mfa_code: mfaCode,
-        }),
+      // Call login again with MFA token
+      const response = await login({
+        email,
+        password,
+        mfa_token: mfaCode,
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'MFA verification failed');
+      // If still MFA required, something went wrong
+      if (response.mfa_required) {
+        throw new Error('MFA verification failed');
       }
 
-      const data = await response.json();
-
-      // Save tokens and redirect
-      // Note: This should go through auth context properly
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-
+      // Login successful, redirect
       router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'MFA verification failed');

@@ -298,6 +298,9 @@ export default function DashboardPage() {
                     <Link href="/servizi">
                       <Button>Esplora Servizi</Button>
                     </Link>
+                    <Link href="/dashboard/security">
+                      <Button variant="outline">Impostazioni Sicurezza</Button>
+                    </Link>
                     <Link href="/contatti">
                       <Button variant="outline">Contatta il Supporto</Button>
                     </Link>

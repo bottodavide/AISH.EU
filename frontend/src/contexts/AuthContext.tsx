@@ -40,6 +40,7 @@ export interface User {
 export interface LoginCredentials {
   email: string;
   password: string;
+  mfa_token?: string; // Optional MFA token for 2FA
 }
 
 export interface LoginResponse {
@@ -127,11 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', credentials);
 
-      // Se MFA richiesto, return response senza settare tokens
-      if (response.mfa_required) {
-        return response;
-      }
-
       // Salva tokens
       apiClient.setTokens(response.access_token, response.refresh_token);
 
@@ -142,7 +138,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return response;
-    } catch (error) {
+    } catch (error: any) {
+      // Check if MFA is required (403 error with mfa_required flag)
+      if (error?.response?.status === 403 && error?.response?.data?.details?.mfa_required) {
+        // Create a special response to indicate MFA is needed
+        const mfaResponse: LoginResponse = {
+          access_token: '',
+          refresh_token: '',
+          token_type: 'bearer',
+          user: {} as any,
+          mfa_required: true,
+        };
+        return mfaResponse;
+      }
+
       throw new Error(getErrorMessage(error));
     }
   }, []);
