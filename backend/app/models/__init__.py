@@ -16,6 +16,7 @@ import app.models.chat
 import app.models.knowledge_base
 import app.models.newsletter
 import app.models.file
+import app.models.use_case
 
 __all__ = [
     "Base",

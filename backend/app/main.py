@@ -41,6 +41,7 @@ from app.api.routes import (
     orders,
     packages,
     services,
+    use_cases,
     users,
 )
 
@@ -195,6 +196,7 @@ app.include_router(admin.router, prefix=API_V1_PREFIX, tags=["Admin"])  # ✅ Ad
 app.include_router(analytics.router, prefix=API_V1_PREFIX + "/analytics", tags=["Analytics"])  # ✅ Analytics & Logs
 app.include_router(homepage.router, prefix=API_V1_PREFIX, tags=["Homepage"])  # ✅ Homepage Banners & Content
 app.include_router(packages.router, prefix=API_V1_PREFIX, tags=["Packages"])  # ✅ Consulting Packages
+app.include_router(use_cases.router, prefix=API_V1_PREFIX, tags=["Use Cases"])  # ✅ Use Cases / Success Stories
 
 # TODO: Registra altri routers:
 # - Webhooks (/api/v1/webhooks) - Stripe webhooks

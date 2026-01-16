@@ -20,6 +20,7 @@ export function Navigation() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/servizi', label: 'Servizi' },
+    { href: '/casi-uso', label: 'Casi d\'Uso' },
     { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'Chi Siamo' },
     { href: '/contatti', label: 'Contatti' },

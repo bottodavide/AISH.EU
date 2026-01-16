@@ -23,6 +23,7 @@ import {
   Settings,
   Package,
   Image as ImageIcon,
+  Briefcase,
 } from 'lucide-react';
 
 interface NavItem {
@@ -68,6 +69,12 @@ const navItems: NavItem[] = [
     href: '/admin/services',
     icon: Package,
     description: 'Servizi consulenziali',
+  },
+  {
+    title: 'Casi d\'Uso',
+    href: '/admin/use-cases',
+    icon: Briefcase,
+    description: 'Success stories',
   },
   {
     title: 'Ordini',

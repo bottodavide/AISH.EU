@@ -64,6 +64,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/casi-uso" className="text-muted-foreground hover:text-foreground">
+                  Casi d'Uso
+                </Link>
+              </li>
+              <li>
                 <Link href="/blog" className="text-muted-foreground hover:text-foreground">
                   Blog
                 </Link>
