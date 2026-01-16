@@ -73,8 +73,8 @@ export default function AdminCreateBlogPostPage() {
     setIsLoadingData(true);
     try {
       const [categoriesRes, tagsRes] = await Promise.all([
-        apiClient.get<{ categories: BlogCategory[] }>('/api/v1/cms/blog/categories'),
-        apiClient.get<{ tags: BlogTag[] }>('/api/v1/cms/blog/tags'),
+        apiClient.get<{ categories: BlogCategory[] }>('/cms/blog/categories'),
+        apiClient.get<{ tags: BlogTag[] }>('/cms/blog/tags'),
       ]);
 
       setCategories(categoriesRes.categories);
@@ -148,7 +148,7 @@ export default function AdminCreateBlogPostPage() {
         is_published: formData.is_published,
       };
 
-      await apiClient.post('/api/v1/cms/blog/posts', payload);
+      await apiClient.post('/cms/blog/posts', payload);
 
       // Redirect to blog list
       router.push('/admin/blog');

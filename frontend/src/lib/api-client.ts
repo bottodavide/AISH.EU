@@ -19,7 +19,7 @@ export interface ApiError {
 
 export interface PaginatedResponse<T> {
   items: T[];
-  total: int;
+  total: number;
   page: number;
   page_size: number;
   total_pages: number;
@@ -83,7 +83,7 @@ class ApiClient {
 
             if (this.refreshToken) {
               // Richiedi nuovo access token
-              const response = await axios.post(`${this.client.defaults.baseURL}/api/v1/auth/refresh`, {
+              const response = await axios.post(`${this.client.defaults.baseURL}/auth/refresh`, {
                 refresh_token: this.refreshToken,
               });
 
@@ -200,7 +200,7 @@ class ApiClient {
    * DELETE request
    */
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxesResponse<T> = await this.client.delete(url, config);
+    const response: AxiosResponse<T> = await this.client.delete(url, config);
     return response.data;
   }
 

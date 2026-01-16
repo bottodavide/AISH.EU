@@ -100,7 +100,7 @@ export default function AdminNewBannerPage() {
         end_date: formData.end_date || undefined,
       };
 
-      await apiClient.post('/api/v1/homepage/banners', payload);
+      await apiClient.post('/homepage/banners', payload);
 
       setSuccess('Banner creato con successo!');
 

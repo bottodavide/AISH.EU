@@ -40,6 +40,8 @@ export default function SecurityPage() {
 
   // MFA Setup State
   const [showSetup, setShowSetup] = useState(false);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [setupPassword, setSetupPassword] = useState('');
   const [mfaSecret, setMfaSecret] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
@@ -54,21 +56,37 @@ export default function SecurityPage() {
   const [copiedCodes, setCopiedCodes] = useState(false);
 
   /**
-   * Start MFA Setup - Get QR code
+   * Show password prompt to start MFA setup
+   */
+  const handleRequestSetup = () => {
+    setShowPasswordPrompt(true);
+    setError(null);
+    setSuccess(null);
+  };
+
+  /**
+   * Start MFA Setup - Get QR code (after password verification)
    */
   const handleStartSetup = async () => {
+    if (!setupPassword) {
+      setError('Inserisci la tua password per continuare');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await apiClient.post<MFASetupResponse>('/api/v1/auth/mfa/setup', {
-        password: '', // Backend doesn't require password for setup, only for enable
+      const response = await apiClient.post<MFASetupResponse>('/auth/mfa/setup', {
+        password: setupPassword,
       });
 
       setMfaSecret(response.secret);
       setQrCodeUrl(response.qr_code_url);
       setBackupCodes(response.backup_codes);
       setShowSetup(true);
+      setShowPasswordPrompt(false);
+      setSetupPassword('');
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -89,7 +107,7 @@ export default function SecurityPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/auth/mfa/enable', {
+      await apiClient.post('/auth/mfa/enable', {
         token: verificationToken,
       });
 
@@ -128,7 +146,7 @@ export default function SecurityPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/auth/mfa/disable', {
+      await apiClient.post('/auth/mfa/disable', {
         password: disablePassword,
         token: disableToken,
       });
@@ -161,6 +179,8 @@ export default function SecurityPage() {
    */
   const handleCancelSetup = () => {
     setShowSetup(false);
+    setShowPasswordPrompt(false);
+    setSetupPassword('');
     setMfaSecret(null);
     setQrCodeUrl(null);
     setBackupCodes([]);
@@ -235,8 +255,8 @@ export default function SecurityPage() {
                     Disabilita MFA
                   </Button>
                 ) : (
-                  <Button onClick={handleStartSetup} disabled={isLoading}>
-                    {isLoading ? 'Caricamento...' : 'Abilita MFA'}
+                  <Button onClick={handleRequestSetup} disabled={isLoading}>
+                    Abilita MFA
                   </Button>
                 )}
               </div>
@@ -257,6 +277,53 @@ export default function SecurityPage() {
               )}
             </div>
           </CardContent>
+        </Card>
+      )}
+
+      {/* Password Prompt for MFA Setup */}
+      {showPasswordPrompt && !user?.mfa_enabled && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Conferma Password</CardTitle>
+            <CardDescription>
+              Inserisci la tua password per iniziare la configurazione dell'autenticazione a due fattori
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="setup-password">Password</Label>
+              <Input
+                id="setup-password"
+                type="password"
+                value={setupPassword}
+                onChange={(e) => setSetupPassword(e.target.value)}
+                placeholder="Inserisci la tua password"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && setupPassword) {
+                    handleStartSetup();
+                  }
+                }}
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPasswordPrompt(false);
+                setSetupPassword('');
+                setError(null);
+              }}
+            >
+              Annulla
+            </Button>
+            <Button
+              onClick={handleStartSetup}
+              disabled={isLoading || !setupPassword}
+            >
+              {isLoading ? 'Verifica...' : 'Continua'}
+            </Button>
+          </CardFooter>
         </Card>
       )}
 

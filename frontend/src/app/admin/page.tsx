@@ -67,13 +67,13 @@ export default function AdminDashboardPage() {
     try {
       // Load stats
       const statsResponse = await apiClient.get<AdminStats>(
-        '/api/v1/admin/stats'
+        '/admin/stats'
       );
       setStats(statsResponse);
 
       // Load recent users
       const usersResponse = await apiClient.get<{ users: RecentUser[]; total: number }>(
-        '/api/v1/admin/users?page=1&page_size=5&sort_by=created_at&sort_order=desc'
+        '/admin/users?page=1&page_size=5&sort_by=created_at&sort_order=desc'
       );
       setRecentUsers(usersResponse.users || []);
 

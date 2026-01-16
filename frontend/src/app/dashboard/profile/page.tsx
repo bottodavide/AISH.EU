@@ -56,7 +56,7 @@ export default function ProfileEditPage() {
     setError(null);
 
     try {
-      const profile = await apiClient.get<any>('/api/v1/users/me');
+      const profile = await apiClient.get<any>('/users/me');
 
       setFormData({
         first_name: profile.profile?.first_name || '',
@@ -99,7 +99,7 @@ export default function ProfileEditPage() {
     setIsSaving(true);
 
     try {
-      await apiClient.put('/api/v1/users/me', {
+      await apiClient.put('/users/me', {
         first_name: formData.first_name,
         last_name: formData.last_name,
         company_name: formData.company_name || undefined,

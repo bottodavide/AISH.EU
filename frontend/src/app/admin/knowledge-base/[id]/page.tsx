@@ -65,7 +65,7 @@ export default function KnowledgeBaseDetailPage() {
       setError(null);
 
       const response = await apiClient.get<DocumentDetail>(
-        `/api/v1/knowledge-base/documents/${documentId}?include_chunks=true`
+        `/knowledge-base/documents/${documentId}?include_chunks=true`
       );
 
       setDocument(response);

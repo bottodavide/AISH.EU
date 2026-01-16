@@ -83,8 +83,8 @@ export default function AdminBlogCategoriesPage() {
 
     try {
       const [categoriesRes, tagsRes] = await Promise.all([
-        apiClient.get<BlogCategory[]>('/api/v1/cms/blog/categories'),
-        apiClient.get<BlogTag[]>('/api/v1/cms/blog/tags'),
+        apiClient.get<BlogCategory[]>('/cms/blog/categories'),
+        apiClient.get<BlogTag[]>('/cms/blog/tags'),
       ]);
 
       setCategories(categoriesRes || []);
@@ -101,7 +101,7 @@ export default function AdminBlogCategoriesPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/cms/blog/categories', {
+      await apiClient.post('/cms/blog/categories', {
         name: newCategory.name,
         slug: generateSlug(newCategory.name),
         description: newCategory.description || undefined,
@@ -120,7 +120,7 @@ export default function AdminBlogCategoriesPage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/cms/blog/categories/${categoryId}`);
+      await apiClient.delete(`/cms/blog/categories/${categoryId}`);
       await loadData();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -132,7 +132,7 @@ export default function AdminBlogCategoriesPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/cms/blog/tags', {
+      await apiClient.post('/cms/blog/tags', {
         name: newTag,
         slug: generateSlug(newTag),
       });
@@ -150,7 +150,7 @@ export default function AdminBlogCategoriesPage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/cms/blog/tags/${tagId}`);
+      await apiClient.delete(`/cms/blog/tags/${tagId}`);
       await loadData();
     } catch (err) {
       setError(getErrorMessage(err));

@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { ShieldAlert } from 'lucide-react';
 
 // Types
 interface Order {
@@ -67,6 +68,13 @@ export default function DashboardPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
+  // Redirect admin users to admin dashboard
+  useEffect(() => {
+    if (user && ['admin', 'super_admin', 'editor'].includes(user.role)) {
+      router.push('/admin');
+    }
+  }, [user, router]);
+
   // Load dashboard data
   useEffect(() => {
     if (isAuthenticated) {
@@ -82,7 +90,7 @@ export default function DashboardPage() {
       // Load orders (with fallback)
       try {
         const ordersResponse = await apiClient.get<{ orders: Order[] }>(
-          '/api/v1/orders'
+          '/orders'
         );
         setOrders(ordersResponse.orders || []);
       } catch {
@@ -92,7 +100,7 @@ export default function DashboardPage() {
       // Load invoices (with fallback)
       try {
         const invoicesResponse = await apiClient.get<{ invoices: Invoice[] }>(
-          '/api/v1/invoices'
+          '/invoices'
         );
         setInvoices(invoicesResponse.invoices || []);
       } catch {
@@ -102,7 +110,7 @@ export default function DashboardPage() {
       // Load profile (with fallback)
       try {
         const profileResponse = await apiClient.get<UserProfile>(
-          '/api/v1/users/me'
+          '/users/me'
         );
         setProfile(profileResponse);
       } catch {
@@ -227,6 +235,20 @@ export default function DashboardPage() {
             Profilo
           </button>
         </div>
+
+        {/* MFA Banner for non-admin users */}
+        {user && !user.mfa_enabled && !['admin', 'super_admin', 'editor'].includes(user.role) && (
+          <Alert className="mb-8 border-blue-500 bg-blue-50">
+            <ShieldAlert className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-900">
+              <strong>Migliora la sicurezza del tuo account:</strong> Abilita l'autenticazione a due fattori (MFA) per proteggere meglio il tuo account.
+              {' '}
+              <Link href="/dashboard/security" className="font-medium underline">
+                Abilita MFA →
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Error Alert */}
         {error && (

@@ -41,10 +41,10 @@ interface Service {
   slug: string;
   name: string;
   category: 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione';
-  type: 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO';
+  type: 'pacchetto_fisso' | 'custom_quote' | 'abbonamento';
   short_description: string;
   long_description: string;
-  pricing_type: 'FIXED' | 'RANGE' | 'CUSTOM';
+  pricing_type: 'fixed' | 'range' | 'custom';
   price_min?: number;
   price_max?: number;
   currency: string;
@@ -81,7 +81,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
     try {
       const response = await apiClient.get<Service>(
-        `/api/v1/services/${params.slug}`
+        `/services/by-slug/${params.slug}`
       );
 
       setService(response);
@@ -93,16 +93,16 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
   };
 
   const formatPrice = (service: Service): string => {
-    if (service.pricing_type === 'CUSTOM') {
+    if (service.pricing_type === 'custom') {
       return 'Su preventivo';
     }
 
-    if (service.pricing_type === 'RANGE' && service.price_min && service.price_max) {
-      return `€${service.price_min.toLocaleString()} - €${service.price_max.toLocaleString()}`;
+    if (service.pricing_type === 'range' && service.price_min && service.price_max) {
+      return `€${service.price_min.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - €${service.price_max.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    if (service.pricing_type === 'FIXED' && service.price_min) {
-      return `€${service.price_min.toLocaleString()}`;
+    if (service.pricing_type === 'fixed' && service.price_min) {
+      return `€${service.price_min.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
     return 'Contattaci';
@@ -119,9 +119,9 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
   const getTypeLabel = (type: string): string => {
     const labels: Record<string, string> = {
-      PACCHETTO_FISSO: 'Pacchetto Fisso',
-      CUSTOM_QUOTE: 'Su Misura',
-      ABBONAMENTO: 'Abbonamento',
+      pacchetto_fisso: 'Pacchetto Fisso',
+      custom_quote: 'Su Misura',
+      abbonamento: 'Abbonamento',
     };
     return labels[type] || type;
   };
@@ -326,7 +326,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
                     )}
 
                     <div className="space-y-2">
-                      {service.pricing_type === 'CUSTOM' ? (
+                      {service.pricing_type === 'custom' ? (
                         <Button className="w-full" size="lg" onClick={handleContactUs}>
                           Richiedi Preventivo
                         </Button>

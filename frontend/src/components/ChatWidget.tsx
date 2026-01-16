@@ -72,7 +72,7 @@ export function ChatWidget() {
   const loadConversations = async () => {
     try {
       const response = await apiClient.get<{ conversations: Conversation[] }>(
-        `/api/v1/chat/conversations?session_id=${sessionId}&limit=1`
+        `/chat/conversations?session_id=${sessionId}&limit=1`
       );
 
       if (response.conversations && response.conversations.length > 0) {
@@ -81,7 +81,7 @@ export function ChatWidget() {
 
         // Load conversation messages
         const detailResponse = await apiClient.get<Conversation>(
-          `/api/v1/chat/conversations/${latestConversation.id}`
+          `/chat/conversations/${latestConversation.id}`
         );
 
         if (detailResponse.messages) {
@@ -119,7 +119,7 @@ export function ChatWidget() {
         role: string;
         content: string;
         created_at: string;
-      }>('/api/v1/chat/message', {
+      }>('/chat/message', {
         conversation_id: conversationId,
         message: userMessage,
         session_id: sessionId,
@@ -179,7 +179,7 @@ export function ChatWidget() {
     if (!conversationId) return;
 
     try {
-      await apiClient.post('/api/v1/chat/feedback', {
+      await apiClient.post('/chat/feedback', {
         conversation_id: conversationId,
         feedback,
       });

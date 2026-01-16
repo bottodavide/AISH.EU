@@ -86,7 +86,7 @@ export default function AdminNewsletterPage() {
 
   const loadStats = async () => {
     try {
-      const data = await apiClient.get<NewsletterStats>('/api/v1/newsletter/stats');
+      const data = await apiClient.get<NewsletterStats>('/newsletter/stats');
       setStats(data);
     } catch (err: any) {
       console.error('Failed to load newsletter stats:', err);
@@ -112,7 +112,7 @@ export default function AdminNewsletterPage() {
       }
 
       const data = await apiClient.get<SubscriberListResponse>(
-        `/api/v1/newsletter/subscribers?${params.toString()}`
+        `/newsletter/subscribers?${params.toString()}`
       );
 
       setSubscribers(data.subscribers);
@@ -137,7 +137,7 @@ export default function AdminNewsletterPage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/newsletter/subscribers/export?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/newsletter/subscribers/export?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access_token')}`,

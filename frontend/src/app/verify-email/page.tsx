@@ -56,7 +56,7 @@ export default function VerifyEmailPage() {
 
   const verifyEmail = async (verificationToken: string) => {
     try {
-      await apiClient.post('/api/v1/auth/verify-email', {
+      await apiClient.post('/auth/verify-email', {
         token: verificationToken,
       });
 

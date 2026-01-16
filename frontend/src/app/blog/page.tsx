@@ -75,7 +75,7 @@ export default function BlogPage() {
   const loadCategories = async () => {
     try {
       const response = await apiClient.get<BlogCategory[]>(
-        '/api/v1/cms/blog/categories'
+        '/cms/blog/categories'
       );
       setCategories(Array.isArray(response) ? response : []);
     } catch (err) {
@@ -103,7 +103,7 @@ export default function BlogPage() {
       }
 
       const response = await apiClient.get<BlogPostsResponse>(
-        `/api/v1/cms/blog/posts?${params.toString()}`
+        `/cms/blog/posts?${params.toString()}`
       );
 
       setPosts(response.posts || []);

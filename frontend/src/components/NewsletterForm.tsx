@@ -51,7 +51,7 @@ export function NewsletterForm({
 
         // Subscribe
         const response = await apiClient.post<{ message: string }>(
-          '/api/v1/newsletter/subscribe',
+          '/newsletter/subscribe',
           {
             email,
             first_name: firstName || undefined,
@@ -69,7 +69,7 @@ export function NewsletterForm({
       } else {
         // Unsubscribe
         const response = await apiClient.post<{ message: string }>(
-          '/api/v1/newsletter/unsubscribe',
+          '/newsletter/unsubscribe',
           { email }
         );
 

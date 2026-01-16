@@ -134,7 +134,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       formData.append('is_public', 'true');
       formData.append('description', `Blog inline image - ${file.name}`);
 
-      const response = await apiClient.post<any>('/api/v1/files/upload', formData, {
+      const response = await apiClient.post<any>('/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

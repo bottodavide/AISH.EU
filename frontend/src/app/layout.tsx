@@ -12,6 +12,7 @@ import { ChatWidget } from '@/components/ChatWidget';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { CookieBanner } from '@/components/CookieBanner';
 import { CookieInitializer } from '@/components/CookieInitializer';
+import MFAEnforcer from '@/components/MFAEnforcer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -102,10 +103,12 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <AuthProvider>
-            <CookieInitializer />
-            {children}
-            <ChatWidget />
-            <CookieBanner />
+            <MFAEnforcer>
+              <CookieInitializer />
+              {children}
+              <ChatWidget />
+              <CookieBanner />
+            </MFAEnforcer>
           </AuthProvider>
         </ErrorBoundary>
       </body>

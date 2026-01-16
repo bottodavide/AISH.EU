@@ -35,7 +35,7 @@ export default function PrivacyPage() {
 
     try {
       const response = await apiClient.get<PageContent>(
-        '/api/v1/cms/pages/slug/privacy'
+        '/cms/pages/slug/privacy'
       );
       setPage(response);
     } catch (err: any) {

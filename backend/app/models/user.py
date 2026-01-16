@@ -246,6 +246,14 @@ class User(Base, UUIDMixin, TimestampMixin):
     # TODO: Aggiungere relationships con:
     # - orders, invoices, tickets, notifications, etc.
 
+    # One-to-Many con SystemLog
+    logs = relationship(
+        "SystemLog",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic",
+    )
+
     # -------------------------------------------------------------------------
     # Indexes
     # -------------------------------------------------------------------------

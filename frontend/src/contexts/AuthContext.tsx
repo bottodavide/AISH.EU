@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Recupera user info dal backend
-      const userData = await apiClient.get<User>('/api/v1/users/me');
+      const userData = await apiClient.get<User>('/users/me');
 
       // DEBUG: Log user data to console
       console.log('[AuthContext] User data received from API:', userData);
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const login = useCallback(async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
-      const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', credentials);
+      const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
 
       // DEBUG: Log login response
       console.log('[AuthContext] Login response:', response);
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const register = useCallback(async (data: RegisterData): Promise<void> => {
     try {
-      await apiClient.post('/api/v1/auth/register', data);
+      await apiClient.post('/auth/register', data);
       // Non fa auto-login, richiede email verification
     } catch (error) {
       throw new Error(getErrorMessage(error));

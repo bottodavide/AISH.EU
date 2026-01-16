@@ -39,7 +39,7 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, deferred
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
@@ -309,21 +309,21 @@ class Invoice(Base, UUIDMixin, TimestampMixin):
     # File Generati
     # -------------------------------------------------------------------------
 
-    pdf_file_id = Column(
+    pdf_file_id = deferred(Column(
         UUID(as_uuid=True),
         ForeignKey("files.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
         comment="FK a files (PDF fattura)",
-    )
+    ))
 
-    xml_file_id = Column(
+    xml_file_id = deferred(Column(
         UUID(as_uuid=True),
         ForeignKey("files.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
         comment="FK a files (XML PA per SDI)",
-    )
+    ))
 
     pdf_url = Column(
         String(500),

@@ -100,8 +100,9 @@ class KnowledgeBaseChunk(Base, UUIDMixin, TimestampMixin):
 
     # Vector embedding (dimensione 1536 per OpenAI text-embedding-3-small)
     # O dimensione custom per altri modelli
+    # Fallback to Text if pgvector not installed
     embedding = Column(
-        Vector(1536) if Vector else None,
+        Vector(1536) if Vector else Text,
         nullable=True,
         comment="Vector embedding per similarity search"
     )

@@ -85,7 +85,7 @@ export default function AdminOrdersPage() {
       }
 
       const response = await apiClient.get<OrdersResponse>(
-        `/api/v1/admin/orders?${params.toString()}`
+        `/admin/orders?${params.toString()}`
       );
 
       setOrders(response.orders);
@@ -119,7 +119,7 @@ export default function AdminOrdersPage() {
     }
 
     try {
-      await apiClient.patch(`/api/v1/admin/orders/${orderId}`, {
+      await apiClient.patch(`/admin/orders/${orderId}`, {
         status: upperStatus,
       });
       await loadOrders();

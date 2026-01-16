@@ -40,7 +40,7 @@ export default function AboutPage() {
 
     try {
       const response = await apiClient.get<PageContent>(
-        '/api/v1/cms/pages/slug/about'
+        '/cms/pages/slug/about'
       );
       setPage(response);
     } catch (err: any) {

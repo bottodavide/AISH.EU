@@ -71,7 +71,7 @@ export default function AdminBannersPage() {
       }
 
       const response = await apiClient.get<BannersResponse>(
-        `/api/v1/homepage/banners?${params.toString()}`
+        `/homepage/banners?${params.toString()}`
       );
 
       let filteredBanners = response.banners || [];
@@ -96,7 +96,7 @@ export default function AdminBannersPage() {
 
   const handleToggleActive = async (banner: Banner) => {
     try {
-      await apiClient.put(`/api/v1/homepage/banners/${banner.id}`, {
+      await apiClient.put(`/homepage/banners/${banner.id}`, {
         is_active: !banner.is_active,
       });
       await loadBanners();
@@ -111,7 +111,7 @@ export default function AdminBannersPage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/homepage/banners/${banner.id}`);
+      await apiClient.delete(`/homepage/banners/${banner.id}`);
       await loadBanners();
     } catch (err) {
       alert(getErrorMessage(err));
@@ -123,7 +123,7 @@ export default function AdminBannersPage() {
     if (newOrder < 0) return;
 
     try {
-      await apiClient.patch(`/api/v1/homepage/banners/${banner.id}/reorder?new_order=${newOrder}`);
+      await apiClient.patch(`/homepage/banners/${banner.id}/reorder?new_order=${newOrder}`);
       await loadBanners();
     } catch (err) {
       alert(getErrorMessage(err));

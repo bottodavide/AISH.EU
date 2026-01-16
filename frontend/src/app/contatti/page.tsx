@@ -71,7 +71,7 @@ export default function ContactPage() {
     }
 
     try {
-      await apiClient.post('/api/v1/contact', formData);
+      await apiClient.post('/contact', formData);
       setSuccess(true);
       setFormData({ name: '', email: '', company: '', role: '', subject: '', message: '' });
       setAcceptPrivacy(false);

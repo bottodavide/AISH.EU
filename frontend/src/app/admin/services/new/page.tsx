@@ -27,10 +27,10 @@ export default function AdminCreateServicePage() {
     name: '',
     slug: '',
     category: 'ai_compliance' as 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione',
-    type: 'PACCHETTO_FISSO' as 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO',
+    type: 'pacchetto_fisso' as 'pacchetto_fisso' | 'custom_quote' | 'abbonamento',
     short_description: '',
     long_description: '',
-    pricing_type: 'FIXED' as 'FIXED' | 'RANGE' | 'CUSTOM',
+    pricing_type: 'fixed' as 'fixed' | 'range' | 'custom',
     price_min: '',
     price_max: '',
     currency: 'EUR',
@@ -83,7 +83,7 @@ export default function AdminCreateServicePage() {
         target_audience: formData.target_audience.filter((t) => t.trim() !== ''),
       };
 
-      await apiClient.post('/api/v1/services', payload);
+      await apiClient.post('/services', payload);
 
       // Redirect to services list
       router.push('/admin/services');
@@ -200,9 +200,9 @@ export default function AdminCreateServicePage() {
                     className="w-full px-3 py-2 border rounded-md"
                     required
                   >
-                    <option value="PACCHETTO_FISSO">Pacchetto Fisso</option>
-                    <option value="CUSTOM_QUOTE">Su Misura</option>
-                    <option value="ABBONAMENTO">Abbonamento</option>
+                    <option value="pacchetto_fisso">Pacchetto Fisso</option>
+                    <option value="custom_quote">Su Misura</option>
+                    <option value="abbonamento">Abbonamento</option>
                   </select>
                 </div>
               </div>
@@ -251,17 +251,17 @@ export default function AdminCreateServicePage() {
                   className="w-full px-3 py-2 border rounded-md"
                   required
                 >
-                  <option value="FIXED">Prezzo Fisso</option>
-                  <option value="RANGE">Range di Prezzo</option>
-                  <option value="CUSTOM">Su Preventivo</option>
+                  <option value="fixed">Prezzo Fisso</option>
+                  <option value="range">Range di Prezzo</option>
+                  <option value="custom">Su Preventivo</option>
                 </select>
               </div>
 
-              {formData.pricing_type !== 'CUSTOM' && (
+              {formData.pricing_type !== 'custom' && (
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="price_min">
-                      {formData.pricing_type === 'FIXED' ? 'Prezzo (€)' : 'Prezzo Minimo (€)'}
+                      {formData.pricing_type === 'fixed' ? 'Prezzo (€)' : 'Prezzo Minimo (€)'}
                     </Label>
                     <Input
                       id="price_min"
@@ -273,7 +273,7 @@ export default function AdminCreateServicePage() {
                     />
                   </div>
 
-                  {formData.pricing_type === 'RANGE' && (
+                  {formData.pricing_type === 'range' && (
                     <div>
                       <Label htmlFor="price_max">Prezzo Massimo (€)</Label>
                       <Input

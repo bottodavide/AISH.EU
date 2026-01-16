@@ -41,7 +41,7 @@ class AuditLog(Base, UUIDMixin):
     __tablename__ = "audit_logs"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
-    action = Column(Enum(AuditAction), nullable=False, index=True, comment="Tipo azione eseguita")
+    action = Column(Enum(AuditAction, native_enum=False), nullable=False, index=True, comment="Tipo azione eseguita")
     entity_type = Column(String(50), nullable=True, index=True, comment="orders, users, invoices, etc.")
     entity_id = Column(UUID(as_uuid=True), nullable=True, comment="ID entità modificata")
     changes = Column(JSONB, nullable=True, comment="Before/After values JSON")
@@ -63,7 +63,7 @@ class SystemLog(Base, UUIDMixin):
     """Log applicazione per debugging e monitoring"""
     __tablename__ = "system_logs"
 
-    level = Column(Enum(LogLevel), nullable=False, index=True)
+    level = Column(Enum(LogLevel, native_enum=False), nullable=False, index=True)
     module = Column(String(100), nullable=False, index=True, comment="auth, payment, email, cms, api, etc.")
     message = Column(Text, nullable=False)
     stack_trace = Column(Text, nullable=True)

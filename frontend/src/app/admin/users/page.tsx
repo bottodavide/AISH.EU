@@ -84,7 +84,7 @@ export default function AdminUsersPage() {
       }
 
       const response = await apiClient.get<UsersResponse>(
-        `/api/v1/admin/users?${params.toString()}`
+        `/admin/users?${params.toString()}`
       );
 
       setUsers(response.users);
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
     }
 
     try {
-      await apiClient.put(`/api/v1/admin/users/${userId}`, {
+      await apiClient.put(`/admin/users/${userId}`, {
         is_active: !currentStatus,
       });
       await loadUsers();
@@ -133,7 +133,7 @@ export default function AdminUsersPage() {
     }
 
     try {
-      await apiClient.put(`/api/v1/admin/users/${userId}`, {
+      await apiClient.put(`/admin/users/${userId}`, {
         role: lowerRole,
       });
       await loadUsers();

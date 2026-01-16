@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_async_db
 from app.core.dependencies import get_current_user
+from app.core.system_logger import log_info, log_warning, log_error
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -228,6 +229,19 @@ async def register(
 
     logger.info(f"User registered successfully: {user.email} (ID: {user.id})")
 
+    # Log registration to system_logs
+    await log_info(
+        db=db,
+        module="auth",
+        message=f"New user registered: {user.email}",
+        user_id=user.id,
+        metadata={
+            "first_name": profile.first_name,
+            "last_name": profile.last_name,
+            "company_name": profile.company_name,
+        },
+    )
+
     # Invia email di benvenuto con link verifica
     user_name = f"{profile.first_name} {profile.last_name}".strip() or user.email.split("@")[0]
     verification_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
@@ -304,6 +318,14 @@ async def login(
             user.locked_until = datetime.utcnow() + timedelta(minutes=30)
             logger.warning(f"Account locked for 30 minutes: {data.email}")
 
+            # Log account lock
+            await log_warning(
+                db=db,
+                module="security",
+                message=f"Account locked due to 5 failed login attempts: {data.email}",
+                metadata={"attempts": user.failed_login_attempts},
+            )
+
         await db.commit()
 
         await log_login_attempt(
@@ -311,6 +333,14 @@ async def login(
             email=data.email,
             success=False,
             failure_reason="Invalid password",
+        )
+
+        # Log failed login attempt
+        await log_warning(
+            db=db,
+            module="auth",
+            message=f"Failed login attempt - invalid password: {data.email}",
+            metadata={"attempts": user.failed_login_attempts},
         )
 
         raise AuthenticationError(message="Invalid email or password")
@@ -392,6 +422,14 @@ async def login(
         db=db,
         email=data.email,
         success=True,
+    )
+
+    # Log to system_logs
+    await log_info(
+        db=db,
+        module="auth",
+        message=f"User logged in successfully: {user.email}",
+        user_id=user.id,
     )
 
     await db.commit()
@@ -543,6 +581,14 @@ async def verify_email(
 
     logger.info(f"Email verified successfully for: {user.email}")
 
+    # Log email verification
+    await log_info(
+        db=db,
+        module="auth",
+        message=f"Email verified for user: {user.email}",
+        user_id=user.id,
+    )
+
     return SuccessResponse(
         message="Email verified successfully",
         data={"email": user.email},
@@ -662,6 +708,14 @@ async def password_reset_request(
 
     logger.info(f"Password reset token generated for: {user.email}")
 
+    # Log password reset request
+    await log_warning(
+        db=db,
+        module="security",
+        message=f"Password reset requested for: {user.email}",
+        user_id=user.id,
+    )
+
     return SuccessResponse(
         message="If the email exists, a password reset link has been sent."
     )
@@ -723,6 +777,14 @@ async def password_reset_confirm(
     await db.commit()
 
     logger.info(f"Password reset successful for: {user.email}")
+
+    # Log password reset completion
+    await log_info(
+        db=db,
+        module="security",
+        message=f"Password reset completed for: {user.email}",
+        user_id=user.id,
+    )
 
     return SuccessResponse(message="Password reset successful")
 
@@ -878,6 +940,14 @@ async def mfa_enable(
 
     logger.info(f"MFA enabled successfully for: {current_user.email}")
 
+    # Log MFA enable
+    await log_info(
+        db=db,
+        module="security",
+        message=f"MFA enabled for user: {current_user.email}",
+        user_id=current_user.id,
+    )
+
     return SuccessResponse(message="MFA enabled successfully")
 
 
@@ -933,6 +1003,14 @@ async def mfa_disable(
 
     logger.info(f"MFA disabled successfully for: {current_user.email}")
 
+    # Log MFA disable
+    await log_warning(
+        db=db,
+        module="security",
+        message=f"MFA disabled for user: {current_user.email}",
+        user_id=current_user.id,
+    )
+
     return SuccessResponse(message="MFA disabled successfully")
 
 
@@ -967,6 +1045,14 @@ async def logout(
     await db.commit()
 
     logger.info(f"Logout successful for: {current_user.email}")
+
+    # Log logout
+    await log_info(
+        db=db,
+        module="auth",
+        message=f"User logged out: {current_user.email}",
+        user_id=current_user.id,
+    )
 
     return SuccessResponse(message="Logged out successfully")
 

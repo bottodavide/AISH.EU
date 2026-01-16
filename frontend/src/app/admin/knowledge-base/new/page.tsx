@@ -94,7 +94,7 @@ export default function NewKnowledgeBasePage() {
 
       // Create document
       const response = await apiClient.post<{ id: string }>(
-        '/api/v1/knowledge-base/documents',
+        '/knowledge-base/documents',
         formDataToSend,
         {
           headers: {
@@ -107,7 +107,7 @@ export default function NewKnowledgeBasePage() {
       if (autoProcess) {
         try {
           await apiClient.post(
-            `/api/v1/knowledge-base/documents/${response.id}/process`,
+            `/knowledge-base/documents/${response.id}/process`,
             {}
           );
           alert('Documento caricato e processato con successo!');

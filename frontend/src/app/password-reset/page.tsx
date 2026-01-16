@@ -63,7 +63,7 @@ export default function PasswordResetPage() {
     setError(null);
 
     try {
-      await apiClient.post('/api/v1/auth/password-reset', { email });
+      await apiClient.post('/auth/password-reset', { email });
       setSuccess(true);
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -90,7 +90,7 @@ export default function PasswordResetPage() {
     setIsLoading(true);
 
     try {
-      await apiClient.post('/api/v1/auth/password-reset/confirm', {
+      await apiClient.post('/auth/password-reset/confirm', {
         token,
         new_password: password,
       });

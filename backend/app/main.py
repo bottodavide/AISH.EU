@@ -27,6 +27,7 @@ from app.core.exceptions import (
 # Import routers
 from app.api.routes import (
     admin,
+    analytics,
     auth,
     chat,
     cms,
@@ -191,6 +192,7 @@ app.include_router(errors.router, prefix=API_V1_PREFIX, tags=["Errors"])  # ✅ 
 app.include_router(newsletter.router, prefix=API_V1_PREFIX, tags=["Newsletter"])  # ✅ Newsletter Management
 app.include_router(contact.router, prefix=API_V1_PREFIX, tags=["Contact"])  # ✅ Contact Form
 app.include_router(admin.router, prefix=API_V1_PREFIX, tags=["Admin"])  # ✅ Admin CMS & User Management
+app.include_router(analytics.router, prefix=API_V1_PREFIX + "/analytics", tags=["Analytics"])  # ✅ Analytics & Logs
 app.include_router(homepage.router, prefix=API_V1_PREFIX, tags=["Homepage"])  # ✅ Homepage Banners & Content
 app.include_router(packages.router, prefix=API_V1_PREFIX, tags=["Packages"])  # ✅ Consulting Packages
 

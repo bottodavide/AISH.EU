@@ -9,13 +9,15 @@ import logging
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
+import io
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel, Field
+from PyPDF2 import PdfReader
 
-from app.core.database import get_db
+from app.core.database import get_db, get_async_db
 from app.core.dependencies import get_current_user
 from app.models.user import User, UserRole
 from app.models.knowledge_base import (
@@ -174,7 +176,7 @@ async def create_document(
     author: Optional[str] = Form(None),
     is_active: bool = Form(True),
     file: Optional[UploadFile] = File(None),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -203,15 +205,49 @@ async def create_document(
 
         if file:
             # Handle file upload
-            document_type = DocumentType.PDF if file.filename.endswith(".pdf") else DocumentType.TEXT
+            filename_lower = file.filename.lower()
+
+            if filename_lower.endswith(".pdf"):
+                document_type = DocumentType.PDF
+            elif filename_lower.endswith((".txt", ".md")):
+                document_type = DocumentType.TEXT
+            elif filename_lower.endswith(".docx"):
+                document_type = DocumentType.DOCX
+            else:
+                document_type = DocumentType.TEXT
 
             # Read file content
             content = await file.read()
             file_size = len(content)
 
-            # For text files, extract content
-            if document_type == DocumentType.TEXT:
-                content_text = content.decode("utf-8")
+            # Extract text based on file type
+            if document_type == DocumentType.PDF:
+                try:
+                    # Extract text from PDF
+                    pdf_file = io.BytesIO(content)
+                    pdf_reader = PdfReader(pdf_file)
+
+                    text_parts = []
+                    for page in pdf_reader.pages:
+                        text = page.extract_text()
+                        if text:
+                            text_parts.append(text)
+
+                    content_text = "\n\n".join(text_parts)
+                    logger.info(f"Extracted {len(content_text)} characters from PDF with {len(pdf_reader.pages)} pages")
+
+                except Exception as e:
+                    logger.error(f"Error extracting PDF text: {e}")
+                    # Continue without text - can be processed later
+                    content_text = None
+
+            elif document_type == DocumentType.TEXT:
+                # For text files, decode content
+                try:
+                    content_text = content.decode("utf-8")
+                except UnicodeDecodeError:
+                    # Try latin-1 as fallback
+                    content_text = content.decode("latin-1")
 
             # Save file path (in production, save to storage)
             file_path = f"/uploads/knowledge_base/{file.filename}"
@@ -274,7 +310,7 @@ async def create_document(
 )
 async def process_document(
     document_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -295,8 +331,8 @@ async def process_document(
                 detail="Document is already being processed",
             )
 
-        # Validate document has content
-        if not document.content_text and not document.source_url:
+        # Validate document has content or file
+        if not document.content_text and not document.source_url and not document.file_path:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Document has no content to process",
@@ -315,7 +351,7 @@ async def process_document(
         if not text_to_process:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No text content available for processing",
+                detail="No text content available for processing. The document may not have been uploaded correctly or text extraction failed.",
             )
 
         logger.info(f"Processing document {document_id} - length: {len(text_to_process)}")
@@ -369,10 +405,10 @@ async def list_documents(
     page: int = 1,
     page_size: int = 20,
     topic: Optional[str] = None,
-    status: Optional[str] = None,
+    processing_status: Optional[str] = None,
     is_active: Optional[bool] = None,
     search: Optional[str] = None,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -384,7 +420,7 @@ async def list_documents(
         page: Page number (1-indexed)
         page_size: Items per page
         topic: Filter by topic
-        status: Filter by processing status
+        processing_status: Filter by processing status
         is_active: Filter by active status
         search: Search in title and description
 
@@ -406,14 +442,14 @@ async def list_documents(
                     detail="Invalid topic",
                 )
 
-        if status:
+        if processing_status:
             try:
-                status_enum = ProcessingStatus(status.upper())
+                status_enum = ProcessingStatus(processing_status.upper())
                 query = query.where(KnowledgeBaseDocument.processing_status == status_enum)
             except ValueError:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid status",
+                    detail="Invalid processing status",
                 )
 
         if is_active is not None:
@@ -481,7 +517,7 @@ async def list_documents(
 async def get_document(
     document_id: UUID,
     include_chunks: bool = False,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -557,7 +593,7 @@ async def get_document(
 async def update_document(
     document_id: UUID,
     request: DocumentUpdateRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -638,7 +674,7 @@ async def update_document(
 )
 async def delete_document(
     document_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -695,7 +731,7 @@ async def delete_document(
 )
 async def toggle_document_active(
     document_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """
@@ -753,7 +789,7 @@ async def toggle_document_active(
 )
 async def get_document_chunks(
     document_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(require_admin),
 ):
     """

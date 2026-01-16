@@ -35,7 +35,7 @@ export default function TermsPage() {
 
     try {
       const response = await apiClient.get<PageContent>(
-        '/api/v1/cms/pages/slug/termini'
+        '/cms/pages/slug/termini'
       );
       setPage(response);
     } catch (err: any) {

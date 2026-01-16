@@ -95,8 +95,8 @@ export default function AdminEditBlogPostPage({ params }: PageProps) {
     setIsLoadingData(true);
     try {
       const [categoriesRes, tagsRes] = await Promise.all([
-        apiClient.get<{ categories: BlogCategory[] }>('/api/v1/cms/blog/categories'),
-        apiClient.get<{ tags: BlogTag[] }>('/api/v1/cms/blog/tags'),
+        apiClient.get<{ categories: BlogCategory[] }>('/cms/blog/categories'),
+        apiClient.get<{ tags: BlogTag[] }>('/cms/blog/tags'),
       ]);
 
       setCategories(categoriesRes.categories);
@@ -113,7 +113,7 @@ export default function AdminEditBlogPostPage({ params }: PageProps) {
     setError(null);
 
     try {
-      const post = await apiClient.get<BlogPost>(`/api/v1/cms/blog/posts/${params.id}`);
+      const post = await apiClient.get<BlogPost>(`/cms/blog/posts/${params.id}`);
 
       setFormData({
         title: post.title,
@@ -193,7 +193,7 @@ export default function AdminEditBlogPostPage({ params }: PageProps) {
         status: formData.is_published ? 'PUBLISHED' : 'DRAFT',
       };
 
-      await apiClient.put(`/api/v1/cms/blog/posts/${params.id}`, payload);
+      await apiClient.put(`/cms/blog/posts/${params.id}`, payload);
 
       // Redirect to blog list
       router.push('/admin/blog');

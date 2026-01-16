@@ -24,9 +24,9 @@ interface Service {
   slug: string;
   name: string;
   category: 'ai_compliance' | 'cybersecurity_nis2' | 'toolkit_formazione';
-  type: 'PACCHETTO_FISSO' | 'CUSTOM_QUOTE' | 'ABBONAMENTO';
+  type: 'pacchetto_fisso' | 'custom_quote' | 'abbonamento';
   short_description: string;
-  pricing_type: 'FIXED' | 'RANGE' | 'CUSTOM';
+  pricing_type: 'fixed' | 'range' | 'custom';
   price_min?: number;
   price_max?: number;
   is_featured: boolean;
@@ -87,7 +87,7 @@ export default function AdminServicesPage() {
       }
 
       const response = await apiClient.get<ServicesResponse>(
-        `/api/v1/services?${params.toString()}`
+        `/services?${params.toString()}`
       );
 
       setServices(response.services);
@@ -111,7 +111,7 @@ export default function AdminServicesPage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/services/${serviceId}`);
+      await apiClient.delete(`/services/${serviceId}`);
       await loadServices();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -120,7 +120,7 @@ export default function AdminServicesPage() {
 
   const togglePublish = async (serviceId: string, currentStatus: boolean) => {
     try {
-      await apiClient.patch(`/api/v1/services/${serviceId}`, {
+      await apiClient.patch(`/services/${serviceId}`, {
         is_published: !currentStatus,
       });
       await loadServices();
@@ -140,9 +140,9 @@ export default function AdminServicesPage() {
 
   const getTypeLabel = (type: string): string => {
     const labels: Record<string, string> = {
-      PACCHETTO_FISSO: 'Pacchetto Fisso',
-      CUSTOM_QUOTE: 'Su Misura',
-      ABBONAMENTO: 'Abbonamento',
+      pacchetto_fisso: 'Pacchetto Fisso',
+      custom_quote: 'Su Misura',
+      abbonamento: 'Abbonamento',
     };
     return labels[type] || type;
   };
@@ -309,10 +309,10 @@ export default function AdminServicesPage() {
                           </td>
                           <td className="p-4">
                             <span className="text-sm">
-                              {service.pricing_type === 'CUSTOM' && 'Su preventivo'}
-                              {service.pricing_type === 'FIXED' && service.price_min && `€${service.price_min}`}
-                              {service.pricing_type === 'RANGE' && service.price_min && service.price_max &&
-                                `€${service.price_min}-€${service.price_max}`}
+                              {service.pricing_type === 'custom' && 'Su preventivo'}
+                              {service.pricing_type === 'fixed' && service.price_min && `€${service.price_min.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                              {service.pricing_type === 'range' && service.price_min && service.price_max &&
+                                `€${service.price_min.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}-€${service.price_max.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                             </span>
                           </td>
                           <td className="p-4 text-center">

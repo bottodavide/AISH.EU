@@ -17,7 +17,7 @@ Note:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
@@ -283,7 +283,7 @@ class Service(Base, UUIDMixin, TimestampMixin):
     @property
     def is_published(self) -> bool:
         """Check se servizio è pubblicato."""
-        return self.published_at is not None and self.published_at <= datetime.utcnow()
+        return self.published_at is not None and self.published_at <= datetime.now(timezone.utc)
 
     @property
     def price_display(self) -> str:

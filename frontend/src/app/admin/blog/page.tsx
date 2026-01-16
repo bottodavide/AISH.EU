@@ -86,7 +86,7 @@ export default function AdminBlogPage() {
       }
 
       const response = await apiClient.get<BlogPostsResponse>(
-        `/api/v1/cms/blog/posts?${params.toString()}`
+        `/cms/blog/posts?${params.toString()}`
       );
 
       setPosts(response.posts);
@@ -110,7 +110,7 @@ export default function AdminBlogPage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/cms/blog/posts/${postId}`);
+      await apiClient.delete(`/cms/blog/posts/${postId}`);
       await loadPosts();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -119,7 +119,7 @@ export default function AdminBlogPage() {
 
   const togglePublish = async (postId: string) => {
     try {
-      await apiClient.post(`/api/v1/cms/blog/posts/${postId}/publish`);
+      await apiClient.post(`/cms/blog/posts/${postId}/publish`);
       await loadPosts();
     } catch (err) {
       setError(getErrorMessage(err));

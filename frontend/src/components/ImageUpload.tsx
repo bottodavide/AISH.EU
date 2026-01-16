@@ -173,7 +173,7 @@ export function ImageUpload({
       formData.append('description', `Uploaded via admin panel - ${file.name}`);
 
       // Upload
-      const response = await apiClient.post<any>('/api/v1/files/upload', formData, {
+      const response = await apiClient.post<any>('/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

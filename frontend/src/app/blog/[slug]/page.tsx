@@ -81,7 +81,7 @@ export default function BlogPostDetailPage({ params }: BlogPostDetailPageProps) 
 
     try {
       const response = await apiClient.get<BlogPost>(
-        `/api/v1/cms/blog/posts/${params.slug}`
+        `/cms/blog/posts/${params.slug}`
       );
 
       setPost(response);
@@ -104,7 +104,7 @@ export default function BlogPostDetailPage({ params }: BlogPostDetailPageProps) 
       params.append('page_size', '3');
 
       const response = await apiClient.get<{ posts: RelatedPost[] }>(
-        `/api/v1/cms/blog/posts?${params.toString()}`
+        `/cms/blog/posts?${params.toString()}`
       );
 
       // Filter out current post

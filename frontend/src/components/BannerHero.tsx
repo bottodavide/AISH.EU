@@ -59,15 +59,25 @@ export function BannerHero() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.get<BannersResponse>(
-        '/api/v1/homepage/banners?position=hero&active_only=true&page_size=5'
-      );
+      const response = await apiClient.get<BannersResponse>('/homepage/banners', {
+        params: {
+          position: 'hero',
+          active_only: true,
+          page_size: 5,
+        },
+      });
 
       setBanners(response.banners || []);
-    } catch (err) {
-      console.error('Failed to load hero banners:', err);
-      // Fallback a banner statico in caso di errore
-      setBanners([]);
+    } catch (err: any) {
+      // Gestione errore 404: nessun banner disponibile
+      if (err.response?.status === 404) {
+        console.log('No hero banners found, showing fallback');
+        setBanners([]);
+      } else {
+        // Altri errori (rete, server, ecc.)
+        console.error('Failed to load hero banners:', err);
+        setBanners([]);
+      }
     } finally {
       setIsLoading(false);
     }

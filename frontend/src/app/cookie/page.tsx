@@ -57,7 +57,7 @@ export default function CookiePage() {
 
     try {
       const response = await apiClient.get<PageContent>(
-        '/api/v1/cms/pages/slug/cookie'
+        '/cms/pages/slug/cookie'
       );
       setPage(response);
     } catch (err: any) {

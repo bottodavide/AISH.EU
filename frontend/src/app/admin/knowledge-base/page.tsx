@@ -80,7 +80,7 @@ export default function KnowledgeBasePage() {
       if (filterActive) params.append('is_active', filterActive);
 
       const response = await apiClient.get<DocumentsResponse>(
-        `/api/v1/knowledge-base/documents?${params.toString()}`
+        `/knowledge-base/documents?${params.toString()}`
       );
 
       setDocuments(response.documents);
@@ -98,7 +98,7 @@ export default function KnowledgeBasePage() {
 
     try {
       setProcessingDocId(documentId);
-      await apiClient.post(`/api/v1/knowledge-base/documents/${documentId}/process`, {});
+      await apiClient.post(`/knowledge-base/documents/${documentId}/process`, {});
       await loadDocuments();
       alert('Documento processato con successo!');
     } catch (err: any) {
@@ -111,7 +111,7 @@ export default function KnowledgeBasePage() {
 
   const toggleActive = async (documentId: string) => {
     try {
-      await apiClient.patch(`/api/v1/knowledge-base/documents/${documentId}/toggle-active`, {});
+      await apiClient.patch(`/knowledge-base/documents/${documentId}/toggle-active`, {});
       await loadDocuments();
     } catch (err: any) {
       console.error('Error toggling active:', err);
@@ -125,7 +125,7 @@ export default function KnowledgeBasePage() {
     }
 
     try {
-      await apiClient.delete(`/api/v1/knowledge-base/documents/${documentId}`);
+      await apiClient.delete(`/knowledge-base/documents/${documentId}`);
       await loadDocuments();
     } catch (err: any) {
       console.error('Error deleting document:', err);
