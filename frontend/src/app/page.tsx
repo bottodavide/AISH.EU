@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Navigation } from '@/components/Navigation';
 import { NewsletterForm } from '@/components/NewsletterForm';
 import { Footer } from '@/components/Footer';
+import { BannerHero } from '@/components/BannerHero';
 
 export default function HomePage() {
   return (
@@ -18,30 +19,8 @@ export default function HomePage() {
       <Navigation />
 
       <main>
-        {/* Hero Section */}
-        <section className="relative py-20 lg:py-32 bg-gradient-to-b from-background to-muted">
-          <div className="container">
-            <div className="mx-auto max-w-4xl text-center">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
-                Innovazione AI in Sicurezza e Compliance
-              </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Consulenza strategica per aziende che vogliono adottare l'Intelligenza Artificiale
-                rispettando GDPR, NIS2 e normative di Cybersecurity
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/servizi">
-                  <Button size="lg">Scopri i Servizi</Button>
-                </Link>
-                <Link href="/contatti">
-                  <Button size="lg" variant="outline">
-                    Contattaci
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Dynamic Hero Banner */}
+        <BannerHero />
 
         {/* Per Chi Section */}
         <section className="py-16 bg-background">

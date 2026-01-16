@@ -22,6 +22,7 @@ import {
   Database,
   Settings,
   Package,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface NavItem {
@@ -37,6 +38,12 @@ const navItems: NavItem[] = [
     href: '/admin',
     icon: LayoutDashboard,
     description: 'Statistiche e panoramica',
+  },
+  {
+    title: 'Banner Homepage',
+    href: '/admin/banners',
+    icon: ImageIcon,
+    description: 'Banner e sezioni',
   },
   {
     title: 'Utenti',

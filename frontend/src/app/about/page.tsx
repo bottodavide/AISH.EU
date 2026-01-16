@@ -44,8 +44,14 @@ export default function AboutPage() {
       );
       setPage(response);
     } catch (err: any) {
-      // Mostra sempre errore inline con possibilità di retry
-      setError(getErrorMessage(err));
+      // Se è 404 (pagina non trovata), mostra contenuto statico senza errore
+      const errorMsg = getErrorMessage(err);
+      if (errorMsg?.includes('404') || errorMsg?.includes('Not Found') || errorMsg?.includes('non trovata')) {
+        setPage(null); // Usa contenuto statico di fallback
+      } else {
+        // Solo per errori reali (500, network, etc)
+        setError(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,11 +97,11 @@ export default function AboutPage() {
             <div className="text-center py-12">
               <h1 className="text-4xl font-bold mb-4">Chi Siamo</h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Questa pagina è temporaneamente non disponibile. Per informazioni, contattaci all'indirizzo{' '}
-                <a href="mailto:info@aistrategyhub.eu" className="text-primary hover:underline">
-                  info@aistrategyhub.eu
-                </a>
+                Siamo spiacenti, si è verificato un errore nel caricamento della pagina.
               </p>
+              <Button variant="outline" onClick={loadPage}>
+                Ricarica Pagina
+              </Button>
             </div>
           </div>
         </main>
