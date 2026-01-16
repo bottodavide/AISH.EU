@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
@@ -27,6 +27,7 @@ export default function VerifyEmailPage() {
   const [status, setStatus] = useState<VerificationStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [countdown, setCountdown] = useState(5);
+  const hasVerifiedRef = useRef(false);
 
   useEffect(() => {
     // Se non c'è token, errore immediato
@@ -35,7 +36,13 @@ export default function VerifyEmailPage() {
       return;
     }
 
+    // Previeni chiamate duplicate (React Strict Mode fa doppio mount in dev)
+    if (hasVerifiedRef.current) {
+      return;
+    }
+
     // Verifica email
+    hasVerifiedRef.current = true;
     verifyEmail(token);
   }, [token]);
 
@@ -71,6 +78,7 @@ export default function VerifyEmailPage() {
     if (token) {
       setStatus('loading');
       setErrorMessage('');
+      hasVerifiedRef.current = false; // Reset flag for retry
       verifyEmail(token);
     }
   };
