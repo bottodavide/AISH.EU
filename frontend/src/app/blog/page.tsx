@@ -77,9 +77,11 @@ export default function BlogPage() {
       const response = await apiClient.get<BlogCategory[]>(
         '/api/v1/cms/blog/categories'
       );
-      setCategories(response);
+      setCategories(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error('Failed to load categories:', err);
+      // Non mostrare errore per categories - non è critico
+      setCategories([]);
     }
   };
 
@@ -104,10 +106,16 @@ export default function BlogPage() {
         `/api/v1/cms/blog/posts?${params.toString()}`
       );
 
-      setPosts(response.posts);
-      setTotalPages(response.total_pages);
+      setPosts(response.posts || []);
+      setTotalPages(response.total_pages || 0);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const errorMsg = getErrorMessage(err);
+      // Solo mostra errore se non è semplicemente "nessun dato"
+      if (errorMsg && !errorMsg.includes('404')) {
+        setError(errorMsg);
+      }
+      setPosts([]);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
