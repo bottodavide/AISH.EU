@@ -48,6 +48,16 @@ class Page(Base, UUIDMixin, TimestampMixin):
 
     versions = relationship("PageVersion", back_populates="page", cascade="all, delete-orphan")
 
+    @property
+    def is_published(self) -> bool:
+        """Computed property: True if status is PUBLISHED"""
+        return self.status == ContentStatus.PUBLISHED
+
+    @property
+    def content_sections(self) -> list:
+        """Computed property: Alias for content_blocks"""
+        return self.content_blocks or []
+
     __table_args__ = (
         Index("ix_pages_status_published", "status", "published_at"),
         {"comment": "Pagine CMS"},
