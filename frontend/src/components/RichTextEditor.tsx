@@ -11,7 +11,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import apiClient from '@/lib/api-client';
+import { Loader2 } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -20,6 +22,11 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showImageMenu, setShowImageMenu] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -57,6 +64,20 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     }
   }, [content, editor]);
 
+  // Close image menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showImageMenu) {
+        setShowImageMenu(false);
+      }
+    };
+
+    if (showImageMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showImageMenu]);
+
   if (!editor) {
     return null;
   }
@@ -68,10 +89,97 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     }
   };
 
-  const addImage = () => {
+  const addImageFromUrl = () => {
     const url = prompt('Inserisci URL immagine:');
     if (url) {
       editor.chain().focus().setImage({ src: url }).run();
+    }
+    setShowImageMenu(false);
+  };
+
+  const handleImageUploadClick = () => {
+    fileInputRef.current?.click();
+    setShowImageMenu(false);
+  };
+
+  const uploadAndInsertImage = async (file: File) => {
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // Validate file
+      const validFormats = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!validFormats.includes(file.type)) {
+        throw new Error('Formato non supportato. Usa JPG, PNG, WebP o GIF');
+      }
+
+      // Check size (max 300KB as per IMAGE_GUIDELINES.md for inline images)
+      const sizeKB = file.size / 1024;
+      if (sizeKB > 300) {
+        throw new Error(`File troppo grande (${Math.round(sizeKB)} KB). Massimo: 300 KB`);
+      }
+
+      // Validate dimensions
+      const dimensions = await validateImageDimensions(file);
+      if (dimensions.width > 1200) {
+        throw new Error(
+          `Larghezza troppo grande (${dimensions.width}px). Massimo: 1200px`
+        );
+      }
+
+      // Upload to backend
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'image');
+      formData.append('is_public', 'true');
+      formData.append('description', `Blog inline image - ${file.name}`);
+
+      const response = await apiClient.post<any>('/api/v1/files/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Insert image into editor
+      if (response.url) {
+        editor.chain().focus().setImage({ src: response.url }).run();
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.detail || error.message || 'Errore durante l\'upload';
+      setUploadError(errorMsg);
+      alert(errorMsg);
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const validateImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.width, height: img.height });
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Impossibile leggere le dimensioni dell\'immagine'));
+      };
+
+      img.src = url;
+    });
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      uploadAndInsertImage(file);
     }
   };
 
@@ -232,14 +340,54 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           </button>
         )}
 
-        <button
-          type="button"
-          onClick={addImage}
-          className="px-3 py-1 rounded hover:bg-background transition-colors"
-          title="Inserisci immagine"
-        >
-          🖼️
-        </button>
+        {/* Image button with dropdown menu */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowImageMenu(!showImageMenu)}
+            disabled={isUploading}
+            className="px-3 py-1 rounded hover:bg-background transition-colors disabled:opacity-50 flex items-center gap-1"
+            title="Inserisci immagine"
+          >
+            {isUploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                🖼️
+                <span className="text-xs">▼</span>
+              </>
+            )}
+          </button>
+
+          {/* Image menu */}
+          {showImageMenu && (
+            <div className="absolute top-full left-0 mt-1 bg-background border rounded-lg shadow-lg z-10 min-w-[180px]">
+              <button
+                type="button"
+                onClick={handleImageUploadClick}
+                className="w-full px-4 py-2 text-left hover:bg-muted transition-colors rounded-t-lg text-sm"
+              >
+                📤 Carica File
+              </button>
+              <button
+                type="button"
+                onClick={addImageFromUrl}
+                className="w-full px-4 py-2 text-left hover:bg-muted transition-colors rounded-b-lg text-sm"
+              >
+                🔗 Inserisci URL
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
 
         <div className="w-px bg-border mx-1" />
 
@@ -301,10 +449,21 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       {/* Editor */}
       <EditorContent editor={editor} />
 
-      {/* Character count (optional) */}
-      <div className="bg-muted border-t px-4 py-2 text-xs text-muted-foreground flex justify-between">
-        <span>{editor.storage.characterCount?.characters() || 0} caratteri</span>
-        <span>{editor.storage.characterCount?.words() || 0} parole</span>
+      {/* Character count and upload status */}
+      <div className="bg-muted border-t px-4 py-2 text-xs text-muted-foreground flex justify-between items-center">
+        <div className="flex gap-4">
+          <span>{editor.storage.characterCount?.characters() || 0} caratteri</span>
+          <span>{editor.storage.characterCount?.words() || 0} parole</span>
+        </div>
+        {isUploading && (
+          <div className="flex items-center gap-2 text-primary">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            <span>Caricamento immagine...</span>
+          </div>
+        )}
+        {uploadError && (
+          <span className="text-destructive">Errore upload</span>
+        )}
       </div>
     </div>
   );
