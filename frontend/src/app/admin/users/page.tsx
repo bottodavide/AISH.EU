@@ -26,10 +26,10 @@ interface User {
   last_name: string;
   role: 'super_admin' | 'admin' | 'editor' | 'support' | 'customer' | 'guest';
   is_active: boolean;
-  is_verified: boolean;
+  is_email_verified: boolean;
   mfa_enabled: boolean;
   created_at: string;
-  last_login_at?: string;
+  last_login?: string;
 }
 
 interface UsersResponse {
@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
                               >
                                 {user.is_active ? 'Attivo' : 'Disattivato'}
                               </span>
-                              {!user.is_verified && (
+                              {!user.is_email_verified && (
                                 <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
                                   Non Verificato
                                 </span>
@@ -334,7 +334,7 @@ export default function AdminUsersPage() {
                             {formatDate(user.created_at)}
                           </td>
                           <td className="p-4 text-center text-sm text-muted-foreground">
-                            {user.last_login_at ? formatDate(user.last_login_at) : 'Mai'}
+                            {user.last_login ? formatDate(user.last_login) : 'Mai'}
                           </td>
                           <td className="p-4">
                             <div className="flex justify-end gap-2">

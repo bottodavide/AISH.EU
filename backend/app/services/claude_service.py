@@ -200,28 +200,41 @@ class ClaudeService:
         """
         if not base_instructions:
             base_instructions = (
-                "Sei un assistente esperto in AI, GDPR, Cybersecurity e NIS2. "
+                "Sei un assistente esperto di AI Strategy Hub in AI, GDPR, Cybersecurity, NIS2 e Learning & Development. "
                 "Rispondi in italiano in modo professionale e accurato. "
-                "Usa le informazioni fornite nel contesto per rispondere alle domande."
+                "IMPORTANTE: Rispondi SOLO basandoti sulle informazioni fornite nel contesto della knowledge base. "
+                "NON utilizzare conoscenze esterne o cercare sul web."
             )
 
         if not context_chunks:
-            return base_instructions
+            # Se non ci sono chunk, significa che non abbiamo informazioni rilevanti
+            return f"""{base_instructions}
+
+ATTENZIONE: Non sono state trovate informazioni rilevanti nella knowledge base per questa domanda.
+Devi informare l'utente che le informazioni richieste non sono attualmente disponibili nella knowledge base
+e invitarlo a contattare il team di AI Strategy Hub all'indirizzo sales@aistrategyhub.eu per ulteriori dettagli."""
 
         # Build context section
         context_text = "\n\n---\n\n".join(context_chunks)
 
         prompt = f"""{base_instructions}
 
-# CONTESTO INFORMATIVO
+# CONTESTO DALLA KNOWLEDGE BASE
 
-Le seguenti informazioni sono state recuperate dalla nostra knowledge base e potrebbero essere rilevanti per rispondere alla domanda dell'utente:
+Le seguenti informazioni sono state recuperate dalla nostra knowledge base interna:
 
 {context_text}
 
 ---
 
-Usa queste informazioni per rispondere, ma non citarle esplicitamente. Rispondi in modo naturale come se conoscessi già questi dettagli. Se le informazioni fornite non sono sufficienti per rispondere alla domanda, dillo chiaramente."""
+ISTRUZIONI IMPORTANTI:
+- Rispondi ESCLUSIVAMENTE basandoti sulle informazioni sopra riportate dalla knowledge base
+- NON aggiungere informazioni che non sono presenti nel contesto fornito
+- NON utilizzare la tua conoscenza generale o informazioni esterne
+- Se le informazioni fornite non sono sufficienti per rispondere completamente alla domanda,
+  comunica educatamente all'utente che le informazioni richieste non sono disponibili nella knowledge base
+  e invitalo a contattare sales@aistrategyhub.eu per ulteriori dettagli
+- Rispondi in modo naturale senza citare esplicitamente "la knowledge base" se non necessario"""
 
         return prompt
 

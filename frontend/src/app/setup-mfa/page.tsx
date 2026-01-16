@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -132,17 +133,22 @@ export default function SetupMFAPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen">
+        <Navigation />
+        <div className="flex items-center justify-center pt-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-2xl">
-        {/* Warning Banner */}
-        <Alert className="mb-6 border-orange-500 bg-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Navigation />
+      <div className="flex items-center justify-center p-4 pt-20">
+        <div className="w-full max-w-2xl">
+          {/* Warning Banner */}
+          <Alert className="mb-6 border-orange-500 bg-orange-50">
           <AlertTriangle className="h-5 w-5 text-orange-600" />
           <AlertDescription className="text-orange-900 font-medium">
             <strong>Setup obbligatorio:</strong> Come {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Editor'},
@@ -355,9 +361,10 @@ export default function SetupMFAPage() {
           </Card>
         )}
 
-        {/* Footer Info */}
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>Hai bisogno di aiuto? Contatta il supporto tecnico</p>
+          {/* Footer Info */}
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            <p>Hai bisogno di aiuto? Contatta il supporto tecnico</p>
+          </div>
         </div>
       </div>
     </div>

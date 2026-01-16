@@ -10,7 +10,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -170,20 +169,14 @@ export default function DashboardPage() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <>
-        <Navigation />
-        <div className="container flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </>
+      <div className="container mx-auto flex items-center justify-center min-h-screen px-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navigation />
-
-      <main className="container py-12">
+    <main className="container mx-auto py-8 px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
@@ -551,6 +544,5 @@ export default function DashboardPage() {
           </>
         )}
       </main>
-    </>
   );
 }

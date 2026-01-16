@@ -103,7 +103,7 @@ async def update_current_user(
     db: AsyncSession = Depends(get_async_db),
 ) -> UserResponse:
     """
-    Aggiorna informazioni utente corrente.
+    Aggiorna informazioni utente corrente e profilo.
 
     Note: Cambio email richiede re-verifica.
 
@@ -137,6 +137,33 @@ async def update_current_user(
         current_user.is_email_verified = False  # Richiede re-verifica
         # TODO: Invia email verifica
 
+    # Update profile fields
+    profile_fields = {
+        'first_name', 'last_name', 'company_name', 'phone_mobile', 'phone_landline',
+        'vat_number', 'tax_code', 'rea_number', 'sdi_code', 'pec_email',
+        'legal_address', 'operational_address', 'avatar_url'
+    }
+
+    profile_data = {k: v for k, v in data.model_dump(exclude_unset=True).items() if k in profile_fields}
+
+    if profile_data:
+        # Load or create profile
+        result = await db.execute(
+            select(UserProfile).where(UserProfile.user_id == current_user.id)
+        )
+        profile = result.scalar_one_or_none()
+
+        if not profile:
+            logger.info(f"Creating profile for user: {current_user.id}")
+            profile = UserProfile(user_id=current_user.id)
+            db.add(profile)
+
+        # Update profile fields
+        for field, value in profile_data.items():
+            setattr(profile, field, value)
+
+        logger.info(f"Profile updated for: {current_user.email}")
+
     await db.commit()
     await db.refresh(current_user)
 
@@ -159,6 +186,9 @@ async def update_current_user(
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         profile=profile,
+        first_name=profile.first_name if profile else None,
+        last_name=profile.last_name if profile else None,
+        company_name=profile.company_name if profile else None,
     )
 
 

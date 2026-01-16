@@ -654,6 +654,60 @@ async def list_orders(
 
 
 @router.get(
+    "/orders/my-orders",
+    response_model=dict,
+    summary="I miei ordini",
+)
+async def get_my_orders(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    limit: int = 20,
+):
+    """
+    Recupera gli ordini dell'utente corrente.
+
+    Endpoint semplificato per area utente.
+    Ritorna solo gli ordini dell'utente autenticato.
+    """
+    logger.info(f"Fetching orders for user {current_user.email}")
+
+    # Query ordini utente con items
+    query = (
+        select(Order)
+        .options(selectinload(Order.items).selectinload(OrderItem.service))
+        .where(Order.user_id == current_user.id)
+        .order_by(desc(Order.created_at))
+        .limit(limit)
+    )
+
+    result = await db.execute(query)
+    orders = result.scalars().all()
+
+    # Formatta risposta
+    orders_list = []
+    for order in orders:
+        # Get first service name if available
+        service_name = "Servizio"
+        if order.items and len(order.items) > 0:
+            if order.items[0].service:
+                service_name = order.items[0].service.name
+            elif order.items[0].service_name:
+                service_name = order.items[0].service_name
+
+        orders_list.append({
+            "id": str(order.id),
+            "order_number": order.order_number,
+            "status": order.status.value,
+            "total": float(order.total),
+            "currency": order.currency,
+            "created_at": order.created_at.isoformat(),
+            "service_name": service_name,
+        })
+
+    return {"orders": orders_list}
+
+
+@router.get(
     "/orders/{order_id}",
     response_model=OrderResponse,
     summary="Dettaglio ordine",

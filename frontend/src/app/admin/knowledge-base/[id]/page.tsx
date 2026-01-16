@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { Navigation } from '@/components/Navigation';
 import {
   ArrowLeft,
   FileText,
@@ -123,45 +124,59 @@ export default function KnowledgeBaseDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Caricamento...</p>
-        </div>
-      </div>
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="flex h-96 items-center justify-center">
+            <div className="text-center">
+              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+              <p className="mt-2 text-sm text-muted-foreground">Caricamento...</p>
+            </div>
+          </div>
+        </main>
+      </>
     );
   }
 
   if (error || !document) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" onClick={() => router.push('/admin/knowledge-base')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla lista
-        </Button>
-        <Alert variant="destructive">
-          <AlertDescription>{error || 'Documento non trovato'}</AlertDescription>
-        </Alert>
-      </div>
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="space-y-4">
+            <Button variant="ghost" onClick={() => router.push('/admin/knowledge-base')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Torna alla lista
+            </Button>
+            <Alert variant="destructive">
+              <AlertDescription>{error || 'Documento non trovato'}</AlertDescription>
+            </Alert>
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/admin/knowledge-base')}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla lista
-        </Button>
+    <>
+      <Navigation />
 
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+      <main className="container py-12">
+        <div className="space-y-6">
+          {/* Header */}
+          <div>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/admin/knowledge-base')}
+              className="mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Torna alla lista
+            </Button>
+
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-bold">{document.title}</h1>
               {document.is_active ? (
                 <Badge variant="default" className="flex items-center gap-1">
@@ -330,6 +345,8 @@ export default function KnowledgeBaseDetailPage() {
           Chiudi
         </Button>
       </div>
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

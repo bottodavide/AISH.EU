@@ -26,11 +26,15 @@ class UserProfileBase(BaseSchema):
     company_name: Optional[str] = Field(None, max_length=255, description="Ragione sociale")
     first_name: Optional[str] = Field(None, max_length=100, description="Nome")
     last_name: Optional[str] = Field(None, max_length=100, description="Cognome")
-    phone: Optional[str] = Field(None, max_length=50, description="Telefono")
+    phone: Optional[str] = Field(None, max_length=50, description="Telefono (deprecated)")
+    phone_mobile: Optional[str] = Field(None, max_length=50, description="Telefono mobile/cellulare")
+    phone_landline: Optional[str] = Field(None, max_length=50, description="Telefono fisso")
     vat_number: Optional[str] = Field(None, max_length=50, description="Partita IVA")
     tax_code: Optional[str] = Field(None, max_length=50, description="Codice Fiscale")
+    rea_number: Optional[str] = Field(None, max_length=50, description="Numero REA (es: MI-1234567)")
     sdi_code: Optional[str] = Field(None, max_length=7, description="Codice SDI fatturazione elettronica")
     pec_email: Optional[EmailStr] = Field(None, description="Email PEC per fatture")
+    avatar_url: Optional[str] = Field(None, max_length=500, description="URL avatar")
 
 
 class UserProfileCreate(UserProfileBase):
@@ -76,6 +80,7 @@ class UserProfileResponse(UserProfileBase, UUIDTimestampSchema):
     billing_state: Optional[str] = Field(None, description="Provincia fatturazione")
     billing_postal_code: Optional[str] = Field(None, description="CAP fatturazione")
     billing_country: Optional[str] = Field(None, description="Paese fatturazione")
+    avatar_url: Optional[str] = Field(None, description="URL avatar")
 
 
 # =============================================================================
@@ -177,6 +182,21 @@ class UpdateCurrentUserRequest(BaseSchema):
     """Schema per update current user (PUT /me)"""
 
     email: Optional[EmailStr] = Field(None, description="Nuova email (richiede re-verifica)")
+
+    # Profile fields
+    first_name: Optional[str] = Field(None, max_length=100, description="Nome")
+    last_name: Optional[str] = Field(None, max_length=100, description="Cognome")
+    company_name: Optional[str] = Field(None, max_length=255, description="Ragione sociale")
+    phone_mobile: Optional[str] = Field(None, max_length=50, description="Telefono mobile")
+    phone_landline: Optional[str] = Field(None, max_length=50, description="Telefono fisso")
+    vat_number: Optional[str] = Field(None, max_length=50, description="Partita IVA")
+    tax_code: Optional[str] = Field(None, max_length=50, description="Codice Fiscale")
+    rea_number: Optional[str] = Field(None, max_length=50, description="Numero REA")
+    sdi_code: Optional[str] = Field(None, max_length=7, description="Codice SDI")
+    pec_email: Optional[EmailStr] = Field(None, description="Email PEC")
+    legal_address: Optional[dict] = Field(None, description="Indirizzo sede legale")
+    operational_address: Optional[dict] = Field(None, description="Indirizzo sede operativa")
+    avatar_url: Optional[str] = Field(None, description="URL avatar")
 
 
 # =============================================================================

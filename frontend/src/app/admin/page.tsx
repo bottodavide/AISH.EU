@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -106,14 +107,18 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Gestione completa della piattaforma
-          </p>
-        </div>
+    <>
+      <Navigation />
+
+      <main className="container py-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Gestione completa della piattaforma
+            </p>
+          </div>
 
         {/* Error Alert */}
         {error && (
@@ -444,6 +449,8 @@ export default function AdminDashboardPage() {
             </Card>
           </div>
         )}
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

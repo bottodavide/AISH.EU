@@ -1,13 +1,13 @@
 /**
- * Admin Create Banner Page
- * Descrizione: Form per creare nuovo banner homepage
+ * Admin Edit Banner Page
+ * Descrizione: Form per modificare un banner esistente
  * Autore: Claude per Davide
  * Data: 2026-01-16
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import apiClient, { getErrorMessage } from '@/lib/api-client';
-import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, X } from 'lucide-react';
 
 interface BannerFormData {
   title: string;
@@ -40,8 +40,9 @@ interface BannerFormData {
   end_date: string;
 }
 
-export default function AdminNewBannerPage() {
+export default function AdminEditBannerPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -65,6 +66,49 @@ export default function AdminNewBannerPage() {
     start_date: '',
     end_date: '',
   });
+
+  // Load banner data on mount
+  useEffect(() => {
+    const loadBanner = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const banner = await apiClient.get(`/homepage/banners/${params.id}`);
+
+        // Format dates for datetime-local input
+        const formatDateForInput = (dateStr: string | null) => {
+          if (!dateStr) return '';
+          const date = new Date(dateStr);
+          return date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+        };
+
+        setFormData({
+          title: banner.title || '',
+          subtitle: banner.subtitle || '',
+          description: banner.description || '',
+          image_url: banner.image_url || '',
+          video_url: banner.video_url || '',
+          cta_text: banner.cta_text || '',
+          cta_link: banner.cta_link || '',
+          cta_variant: banner.cta_variant || 'primary',
+          position: banner.position || 'hero',
+          display_order: banner.display_order || 0,
+          background_color: banner.background_color || '',
+          text_color: banner.text_color || '',
+          is_active: banner.is_active !== false,
+          start_date: formatDateForInput(banner.start_date),
+          end_date: formatDateForInput(banner.end_date),
+        });
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBanner();
+  }, [params.id]);
 
   const handleChange = (field: keyof BannerFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -187,9 +231,9 @@ export default function AdminNewBannerPage() {
         end_date: formData.end_date || undefined,
       };
 
-      await apiClient.post('/homepage/banners', payload);
+      await apiClient.put(`/homepage/banners/${params.id}`, payload);
 
-      setSuccess('Banner creato con successo!');
+      setSuccess('Banner aggiornato con successo!');
 
       // Redirect dopo 1 secondo
       setTimeout(() => {
@@ -202,23 +246,42 @@ export default function AdminNewBannerPage() {
     }
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <>
+        <Navigation />
+        <main className="container py-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Caricamento banner...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Navigation />
 
       <main className="container py-12">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8 flex items-center gap-4">
-            <Link href="/admin/banners">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Nuovo Banner</h1>
+      {/* Header */}
+      <div className="mb-8 flex items-center gap-4">
+        <Link href="/admin/banners">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Modifica Banner</h1>
           <p className="text-muted-foreground">
-            Crea un nuovo banner per la homepage
+            Aggiorna le informazioni del banner
           </p>
         </div>
       </div>
@@ -566,7 +629,7 @@ export default function AdminNewBannerPage() {
         <div className="flex gap-4">
           <Button type="submit" size="lg" disabled={isSaving}>
             <Save className="h-5 w-5 mr-2" />
-            {isSaving ? 'Salvataggio...' : 'Crea Banner'}
+            {isSaving ? 'Salvataggio...' : 'Salva Modifiche'}
           </Button>
           <Link href="/admin/banners">
             <Button type="button" variant="outline" size="lg" disabled={isSaving}>

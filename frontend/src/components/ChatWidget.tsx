@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import { handleChatError, getErrorMessage } from '@/lib/error-handler';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -276,10 +278,35 @@ export function ChatWidget() {
                   'max-w-[80%] rounded-lg px-4 py-2 text-sm',
                   message.role === 'user'
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
+                    : 'bg-muted',
+                  message.role === 'assistant' && 'prose prose-sm max-w-none dark:prose-invert'
                 )}
               >
-                {message.content}
+                {message.role === 'assistant' ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      ul: ({ children }) => <ul className="mb-2 ml-4 list-disc space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal space-y-1">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      h1: ({ children }) => <h1 className="mb-2 text-lg font-bold">{children}</h1>,
+                      h2: ({ children }) => <h2 className="mb-2 text-base font-bold">{children}</h2>,
+                      h3: ({ children }) => <h3 className="mb-1 text-sm font-semibold">{children}</h3>,
+                      code: ({ inline, children }) =>
+                        inline ? (
+                          <code className="rounded bg-muted-foreground/10 px-1 py-0.5 text-xs">{children}</code>
+                        ) : (
+                          <code className="block rounded bg-muted-foreground/10 p-2 text-xs">{children}</code>
+                        ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
+                  message.content
+                )}
               </div>
             </div>
           ))}

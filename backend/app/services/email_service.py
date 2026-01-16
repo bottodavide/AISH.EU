@@ -356,6 +356,39 @@ def send_invoice_ready_email(
 
 
 # =============================================================================
+# HELPER FUNCTIONS - NEWSLETTER
+# =============================================================================
+
+
+def send_newsletter_welcome_email(
+    user_email: str,
+    user_name: Optional[str] = None,
+) -> bool:
+    """
+    Invia email di benvenuto alla newsletter.
+
+    Args:
+        user_email: Email iscritto
+        user_name: Nome iscritto (opzionale)
+
+    Returns:
+        bool: True se successo
+    """
+    context = {
+        "subject": "Benvenuto nella Newsletter - AI Strategy Hub",
+        "user_email": user_email,
+        "user_name": user_name,
+    }
+
+    return email_service.send_templated_email(
+        to=user_email,
+        subject=context["subject"],
+        template_name="newsletter_welcome.html",
+        context=context,
+    )
+
+
+# =============================================================================
 # HELPER FUNCTIONS - SUPPORT & NOTIFICATIONS
 # =============================================================================
 

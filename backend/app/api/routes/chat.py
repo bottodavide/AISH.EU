@@ -189,6 +189,7 @@ async def send_chat_message(
         )
         db.add(user_message)
         conversation.total_messages += 1
+        await db.flush()  # Flush to make user message available in history query
 
         # Retrieve context with RAG (if enabled)
         context_chunks = []
@@ -224,9 +225,13 @@ async def send_chat_message(
         guardrails_instructions = guardrails_service.get_system_instructions(guardrails_config)
         base_instructions = (
             "Sei un assistente esperto di AI Strategy Hub, specializzato in "
-            "Intelligenza Artificiale, GDPR, Cybersecurity e NIS2. "
-            "Rispondi in italiano in modo professionale, chiaro e accurato. "
-            "Se non conosci la risposta, dillo onestamente. "
+            "Intelligenza Artificiale, GDPR, Cybersecurity, NIS2 e Learning & Development. "
+            "Rispondi in italiano in modo professionale, chiaro e accurato.\n\n"
+            "IMPORTANTE: Puoi rispondere SOLO utilizzando le informazioni presenti nella knowledge base fornita. "
+            "NON devi cercare informazioni su web o utilizzare conoscenze esterne. "
+            "Se le informazioni richieste NON sono presenti nella knowledge base, rispondi educatamente che "
+            "le informazioni non sono attualmente disponibili nella knowledge base e invita l'utente a "
+            "contattare il team di AI Strategy Hub all'indirizzo sales@aistrategyhub.eu per ulteriori dettagli. "
             f"{guardrails_instructions}"
         )
 

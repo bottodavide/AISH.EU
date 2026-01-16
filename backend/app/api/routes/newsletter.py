@@ -23,6 +23,7 @@ from app.core.exceptions import DuplicateResourceError, ValidationError
 from app.models.newsletter import NewsletterSubscriber, SubscriberStatus
 from app.models.user import User
 from app.schemas.base import SuccessResponse
+from app.services.email_service import send_newsletter_welcome_email
 from app.schemas.newsletter import (
     NewsletterStatsResponse,
     NewsletterSubscribeRequest,
@@ -94,6 +95,19 @@ async def subscribe_to_newsletter(
             await db.commit()
 
             logger.info(f"Newsletter subscriber reactivated: {request.email}")
+
+            # Invia email di benvenuto
+            user_name = None
+            if existing.first_name and existing.last_name:
+                user_name = f"{existing.first_name} {existing.last_name}"
+            elif existing.first_name:
+                user_name = existing.first_name
+
+            send_newsletter_welcome_email(
+                user_email=request.email,
+                user_name=user_name,
+            )
+
             return SuccessResponse(
                 message="Iscrizione alla newsletter confermata! Ti invieremo i nostri aggiornamenti."
             )
@@ -128,6 +142,18 @@ async def subscribe_to_newsletter(
     await db.commit()
 
     logger.info(f"New newsletter subscriber: {request.email}")
+
+    # Invia email di benvenuto
+    user_name = None
+    if request.first_name and request.last_name:
+        user_name = f"{request.first_name} {request.last_name}"
+    elif request.first_name:
+        user_name = request.first_name
+
+    send_newsletter_welcome_email(
+        user_email=request.email,
+        user_name=user_name,
+    )
 
     return SuccessResponse(
         message="Iscrizione alla newsletter completata! Ti invieremo i nostri aggiornamenti su AI, GDPR e Cybersecurity."

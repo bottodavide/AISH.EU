@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -148,15 +149,19 @@ export default function AdminBannersPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Banner Homepage</h1>
-          <p className="text-muted-foreground">
-            Gestisci i banner e le sezioni della homepage
-          </p>
-        </div>
+    <>
+      <Navigation />
+
+      <main className="container py-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Banner Homepage</h1>
+              <p className="text-muted-foreground">
+                Gestisci i banner e le sezioni della homepage
+              </p>
+            </div>
         <Link href="/admin/banners/new">
           <Button size="lg">
             <Plus className="h-5 w-5 mr-2" />
@@ -390,6 +395,8 @@ export default function AdminBannersPage() {
           )}
         </>
       )}
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

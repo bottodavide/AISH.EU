@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Navigation } from '@/components/Navigation';
 import {
   FileText,
   Plus,
@@ -204,15 +205,19 @@ export default function KnowledgeBasePage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Knowledge Base</h1>
-          <p className="text-muted-foreground">
-            Gestisci i documenti della knowledge base per il RAG system
-          </p>
-        </div>
+    <>
+      <Navigation />
+
+      <main className="container py-12">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Knowledge Base</h1>
+              <p className="text-muted-foreground">
+                Gestisci i documenti della knowledge base per il RAG system
+              </p>
+            </div>
         <Button onClick={() => router.push('/admin/knowledge-base/new')}>
           <Plus className="mr-2 h-4 w-4" />
           Nuovo Documento
@@ -429,6 +434,8 @@ export default function KnowledgeBasePage() {
           </Button>
         </div>
       )}
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Benvenuto nella Newsletter - AI Strategy Hub{% endblock %}
+
+{% block content %}
+<h1 style="color: #1e40af; font-size: 28px; margin-bottom: 20px;">
+  🎉 Benvenuto nella Newsletter!
+</h1>
+
+<p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 20px;">
+  Ciao {% if user_name %}{{ user_name }}{% else %}{{ user_email }}{% endif %},
+</p>
+
+<p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 20px;">
+  Grazie per esserti iscritto/a alla newsletter di <strong>AI Strategy Hub</strong>!
+  Siamo entusiasti di averti con noi.
+</p>
+
+<div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 30px 0; border-radius: 4px;">
+  <h2 style="color: #1e40af; font-size: 20px; margin-top: 0; margin-bottom: 15px;">
+    📬 Cosa riceverai
+  </h2>
+  <ul style="margin: 0; padding-left: 20px; color: #374151; line-height: 1.8;">
+    <li><strong>Aggiornamenti su AI e Intelligenza Artificiale</strong> - Le ultime novità e trend nel mondo dell'AI applicata al business</li>
+    <li><strong>GDPR e Privacy</strong> - Consigli pratici per la conformità normativa e la protezione dei dati</li>
+    <li><strong>Cybersecurity</strong> - Strategie e best practice per proteggere la tua azienda dalle minacce digitali</li>
+    <li><strong>NIS2</strong> - Approfondimenti sulla nuova direttiva europea sulla sicurezza delle reti</li>
+    <li><strong>Learning & Development</strong> - Risorse per la formazione aziendale e lo sviluppo delle competenze</li>
+  </ul>
+</div>
+
+<p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 20px;">
+  Le nostre newsletter sono pensate per fornire <strong>valore concreto</strong>:
+  niente spam, solo contenuti di qualità che ti aiuteranno a prendere decisioni strategiche informate.
+</p>
+
+<div style="text-align: center; margin: 40px 0;">
+  <a href="{{ settings.FRONTEND_URL }}/blog"
+     style="display: inline-block; background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+    📚 Visita il Blog
+  </a>
+</div>
+
+<p style="font-size: 16px; line-height: 1.6; color: #374151; margin-bottom: 20px;">
+  Nel frattempo, ti invitiamo a esplorare il nostro sito web per scoprire tutti i servizi che offriamo
+  per aiutare la tua azienda a crescere nel mondo digitale.
+</p>
+
+<div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-top: 30px;">
+  <p style="font-size: 14px; color: #6b7280; margin: 0 0 10px 0;">
+    <strong>Hai domande?</strong> Siamo qui per aiutarti.
+  </p>
+  <p style="font-size: 14px; color: #6b7280; margin: 0;">
+    Contattaci su <a href="https://www.aistrategyhub.eu/contatti" style="color: #2563eb; text-decoration: none;">www.aistrategyhub.eu/contatti</a>
+  </p>
+</div>
+
+<p style="font-size: 14px; color: #9ca3af; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+  Non vuoi più ricevere le nostre newsletter?
+  <a href="{{ settings.FRONTEND_URL }}/newsletter/unsubscribe?email={{ user_email }}"
+     style="color: #6b7280; text-decoration: underline;">
+    Annulla l'iscrizione
+  </a>
+</p>
+{% endblock %}

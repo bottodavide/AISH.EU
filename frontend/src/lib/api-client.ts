@@ -241,6 +241,29 @@ class ApiClient {
 
     return response.data;
   }
+
+  /**
+   * POST FormData (multipart/form-data)
+   */
+  async postFormData<T>(
+    url: string,
+    formData: FormData,
+    onProgress?: (progress: number) => void
+  ): Promise<T> {
+    const response: AxiosResponse<T> = await this.client.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      },
+    });
+
+    return response.data;
+  }
 }
 
 // =============================================================================

@@ -325,7 +325,19 @@ class UserProfile(Base, UUIDMixin, TimestampMixin):
     phone = Column(
         String(20),
         nullable=True,
-        comment="Telefono (formato internazionale)",
+        comment="Telefono (deprecated - usare phone_mobile o phone_landline)",
+    )
+
+    phone_mobile = Column(
+        String(20),
+        nullable=True,
+        comment="Telefono mobile/cellulare",
+    )
+
+    phone_landline = Column(
+        String(20),
+        nullable=True,
+        comment="Telefono fisso",
     )
 
     # -------------------------------------------------------------------------
@@ -345,10 +357,16 @@ class UserProfile(Base, UUIDMixin, TimestampMixin):
         comment="Partita IVA (formato: ITXXXXXXXXXXX)",
     )
 
-    fiscal_code = Column(
+    tax_code = Column(
         String(16),
         nullable=True,
         comment="Codice Fiscale italiano",
+    )
+
+    rea_number = Column(
+        String(50),
+        nullable=True,
+        comment="Numero REA (Repertorio Economico Amministrativo, es: MI-1234567)",
     )
 
     # -------------------------------------------------------------------------
@@ -368,7 +386,7 @@ class UserProfile(Base, UUIDMixin, TimestampMixin):
     )
 
     # -------------------------------------------------------------------------
-    # Indirizzo Fatturazione
+    # Indirizzi
     # -------------------------------------------------------------------------
 
     billing_address = Column(
@@ -377,7 +395,19 @@ class UserProfile(Base, UUIDMixin, TimestampMixin):
         comment="Indirizzo fatturazione (JSON: street, city, zip, province, country)",
     )
 
-    # Example structure:
+    legal_address = Column(
+        JSONB,
+        nullable=True,
+        comment="Indirizzo sede legale (JSON: street, city, zip, province, country)",
+    )
+
+    operational_address = Column(
+        JSONB,
+        nullable=True,
+        comment="Indirizzo sede operativa (JSON: street, city, zip, province, country)",
+    )
+
+    # Example structure for addresses:
     # {
     #   "street": "Via Example 123",
     #   "city": "Milano",
@@ -402,6 +432,12 @@ class UserProfile(Base, UUIDMixin, TimestampMixin):
         nullable=False,
         default="Europe/Rome",
         comment="Timezone preferito",
+    )
+
+    avatar_url = Column(
+        String(500),
+        nullable=True,
+        comment="URL avatar utente (può essere URL esterno o path file caricato)",
     )
 
     # -------------------------------------------------------------------------

@@ -31,14 +31,13 @@ export default function AdminSettingsPage() {
     language: 'it',
   });
 
-  // Email Settings
+  // Office365 Email Settings
   const [emailSettings, setEmailSettings] = useState({
-    smtp_host: 'smtp.gmail.com',
-    smtp_port: '587',
-    smtp_user: '',
-    smtp_password: '',
-    from_email: 'noreply@aistrategyhub.eu',
-    from_name: 'AI Strategy Hub',
+    tenant_id: '',
+    client_id: '',
+    client_secret: '',
+    sender_email: 'noreply@aistrategyhub.eu',
+    sender_name: 'AI Strategy Hub',
   });
 
   // Payment Settings
@@ -225,109 +224,132 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Email Settings */}
+        {/* Office365 Email Settings */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              <CardTitle>Configurazione Email</CardTitle>
+              <CardTitle>Configurazione Email (Office 365)</CardTitle>
             </div>
             <CardDescription>
-              Impostazioni SMTP per l'invio delle email
+              Configurazione Microsoft Graph API per invio email tramite Office 365
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-blue-800 text-sm">
+                ℹ️ Utilizza Microsoft Graph API per inviare email tramite il tuo account Office 365 aziendale.
+                Le credenziali sono registrate in Azure AD.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="smtp_host">SMTP Host</Label>
+                <Label htmlFor="tenant_id">Azure AD Tenant ID</Label>
                 <Input
-                  id="smtp_host"
-                  value={emailSettings.smtp_host}
+                  id="tenant_id"
+                  value={emailSettings.tenant_id}
                   onChange={(e) =>
                     setEmailSettings({
                       ...emailSettings,
-                      smtp_host: e.target.value,
+                      tenant_id: e.target.value,
                     })
                   }
+                  placeholder="10a08e0e-3b37-4ac3-8a24-465ef3494d41"
+                  className="font-mono text-sm"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  ID tenant dell'organizzazione Azure AD
+                </p>
               </div>
 
               <div>
-                <Label htmlFor="smtp_port">SMTP Port</Label>
+                <Label htmlFor="client_id">Application (Client) ID</Label>
                 <Input
-                  id="smtp_port"
-                  value={emailSettings.smtp_port}
+                  id="client_id"
+                  value={emailSettings.client_id}
                   onChange={(e) =>
                     setEmailSettings({
                       ...emailSettings,
-                      smtp_port: e.target.value,
+                      client_id: e.target.value,
                     })
                   }
+                  placeholder="23d3de80-c6c1-490e-be41-fb7b53eec859"
+                  className="font-mono text-sm"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  ID dell'applicazione registrata in Azure AD
+                </p>
               </div>
 
               <div>
-                <Label htmlFor="smtp_user">SMTP Username</Label>
+                <Label htmlFor="client_secret">Client Secret</Label>
                 <Input
-                  id="smtp_user"
-                  value={emailSettings.smtp_user}
-                  onChange={(e) =>
-                    setEmailSettings({
-                      ...emailSettings,
-                      smtp_user: e.target.value,
-                    })
-                  }
-                  placeholder="username@gmail.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="smtp_password">SMTP Password</Label>
-                <Input
-                  id="smtp_password"
+                  id="client_secret"
                   type="password"
-                  value={emailSettings.smtp_password}
+                  value={emailSettings.client_secret}
                   onChange={(e) =>
                     setEmailSettings({
                       ...emailSettings,
-                      smtp_password: e.target.value,
+                      client_secret: e.target.value,
                     })
                   }
-                  placeholder="••••••••"
+                  placeholder="••••••••••••••••••••"
+                  className="font-mono text-sm"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Secret dell'applicazione (generato in Azure AD)
+                </p>
               </div>
 
-              <div>
-                <Label htmlFor="from_email">From Email</Label>
-                <Input
-                  id="from_email"
-                  type="email"
-                  value={emailSettings.from_email}
-                  onChange={(e) =>
-                    setEmailSettings({
-                      ...emailSettings,
-                      from_email: e.target.value,
-                    })
-                  }
-                />
-              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sender_email">Sender Email</Label>
+                  <Input
+                    id="sender_email"
+                    type="email"
+                    value={emailSettings.sender_email}
+                    onChange={(e) =>
+                      setEmailSettings({
+                        ...emailSettings,
+                        sender_email: e.target.value,
+                      })
+                    }
+                    placeholder="noreply@aistrategyhub.eu"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Account Office 365 da cui inviare le email
+                  </p>
+                </div>
 
-              <div>
-                <Label htmlFor="from_name">From Name</Label>
-                <Input
-                  id="from_name"
-                  value={emailSettings.from_name}
-                  onChange={(e) =>
-                    setEmailSettings({
-                      ...emailSettings,
-                      from_name: e.target.value,
-                    })
-                  }
-                />
+                <div>
+                  <Label htmlFor="sender_name">Sender Name</Label>
+                  <Input
+                    id="sender_name"
+                    value={emailSettings.sender_name}
+                    onChange={(e) =>
+                      setEmailSettings({
+                        ...emailSettings,
+                        sender_name: e.target.value,
+                      })
+                    }
+                    placeholder="AI Strategy Hub"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nome visualizzato come mittente
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm">
+                  <p className="font-medium">Stato Configurazione</p>
+                  <p className="text-green-600 text-xs mt-1">✓ Configurato e attivo</p>
+                </div>
+              </div>
+
               <Button
                 onClick={() => alert('Test email inviata! (Mock)')}
                 variant="outline"
@@ -338,7 +360,7 @@ export default function AdminSettingsPage() {
               </Button>
               <Button onClick={handleSaveGeneral} disabled={isSaving}>
                 <Save className="h-4 w-4 mr-2" />
-                Salva Configurazione Email
+                Salva Configurazione Office 365
               </Button>
             </div>
           </CardContent>

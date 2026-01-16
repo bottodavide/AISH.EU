@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Navigation } from '@/components/Navigation';
 import { ArrowLeft, Upload, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -130,21 +131,25 @@ export default function NewKnowledgeBasePage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      {/* Header */}
-      <div>
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/admin/knowledge-base')}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla lista
-        </Button>
+    <>
+      <Navigation />
 
-        <h1 className="text-3xl font-bold">Nuovo Documento Knowledge Base</h1>
-        <p className="text-muted-foreground">
-          Carica un documento per arricchire la knowledge base del RAG system
+      <main className="container py-12">
+        <div className="mx-auto max-w-3xl space-y-6">
+          {/* Header */}
+          <div>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/admin/knowledge-base')}
+              className="mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Torna alla lista
+            </Button>
+
+            <h1 className="text-3xl font-bold">Nuovo Documento Knowledge Base</h1>
+            <p className="text-muted-foreground">
+              Carica un documento per arricchire la knowledge base del RAG system
         </p>
       </div>
 
@@ -341,6 +346,8 @@ export default function NewKnowledgeBasePage() {
           </li>
         </ul>
       </div>
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

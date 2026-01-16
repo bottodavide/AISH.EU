@@ -59,6 +59,7 @@ class UserListItem(BaseModel):
     role: str
     is_active: bool
     is_email_verified: bool
+    mfa_enabled: bool
     created_at: datetime
     last_login: Optional[datetime] = None
     first_name: Optional[str] = None
@@ -285,6 +286,7 @@ async def list_users(
             role=user.role.value,
             is_active=user.is_active,
             is_email_verified=user.is_email_verified,
+            mfa_enabled=user.mfa_enabled,
             created_at=user.created_at,
             last_login=user.last_login,
             first_name=profile.first_name if profile else None,
