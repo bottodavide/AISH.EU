@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel, Field
 
-from app.core.database import get_db
+from app.core.database import get_async_db
 from app.core.dependencies import get_current_user_optional
 from app.models.user import User
 from app.models.chat import ChatConversation, ChatMessage, MessageRole, UserFeedback
@@ -92,7 +92,7 @@ class FeedbackRequest(BaseModel):
 @router.post("/chat/message", response_model=ChatMessageResponse, tags=["Chat"])
 async def send_chat_message(
     request: ChatMessageRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
@@ -300,7 +300,7 @@ async def send_chat_message(
 async def list_conversations(
     session_id: Optional[str] = None,
     limit: int = 20,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
@@ -360,7 +360,7 @@ async def list_conversations(
 )
 async def get_conversation(
     conversation_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
@@ -428,7 +428,7 @@ async def get_conversation(
 @router.post("/chat/feedback", tags=["Chat"])
 async def submit_feedback(
     request: FeedbackRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
