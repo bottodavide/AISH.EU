@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ChatWidget } from '@/components/ChatWidget';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { CookieBanner } from '@/components/CookieBanner';
+import { CookieInitializer } from '@/components/CookieInitializer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -100,8 +102,10 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <AuthProvider>
+            <CookieInitializer />
             {children}
             <ChatWidget />
+            <CookieBanner />
           </AuthProvider>
         </ErrorBoundary>
       </body>
