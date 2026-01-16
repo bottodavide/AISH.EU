@@ -84,6 +84,17 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate first name and last name
+    if (!formData.firstName.trim()) {
+      setError('Il nome è obbligatorio');
+      return;
+    }
+
+    if (!formData.lastName.trim()) {
+      setError('Il cognome è obbligatorio');
+      return;
+    }
+
     // Validate business email (no generic providers)
     const genericProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com', 'libero.it', 'virgilio.it'];
     const emailDomain = formData.email.split('@')[1]?.toLowerCase();
@@ -253,7 +264,7 @@ export default function RegisterPage() {
                 {/* First Name & Last Name */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">Nome</Label>
+                    <Label htmlFor="firstName">Nome *</Label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -261,11 +272,12 @@ export default function RegisterPage() {
                       placeholder="Mario"
                       value={formData.firstName}
                       onChange={handleChange}
+                      required
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Cognome</Label>
+                    <Label htmlFor="lastName">Cognome *</Label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -273,6 +285,7 @@ export default function RegisterPage() {
                       placeholder="Rossi"
                       value={formData.lastName}
                       onChange={handleChange}
+                      required
                       disabled={isLoading}
                     />
                   </div>
