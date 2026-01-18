@@ -1,5 +1,8 @@
 /**
+ * Next.js 16 Configuration
  * @type {import('next').NextConfig}
+ * @see https://nextjs.org/docs/app/api-reference/next-config-js
+ * @see https://nextjs.org/docs/app/guides/upgrading/version-16
  */
 const nextConfig = {
   /* Environment */
@@ -7,18 +10,24 @@ const nextConfig = {
   poweredByHeader: false,
 
   /* Build Configuration */
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // NOTE: eslint config removed (no longer supported in Next.js 16)
+  // Run `npm run lint` separately to check for errors
   typescript: {
     ignoreBuildErrors: true,
   },
 
   /* Image Optimization */
   images: {
-    domains: [
-      'localhost',
-      'aistrategyhub.eu',
+    // Updated from deprecated 'domains' to 'remotePatterns'
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aistrategyhub.eu',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -72,11 +81,10 @@ const nextConfig = {
   //   ];
   // },
 
-  /* Webpack Configuration */
-  webpack: (config, { isServer }) => {
-    // Custom webpack config se necessario
-    return config;
-  },
+  /* Turbopack Configuration (Next.js 16 default bundler) */
+  // Empty config to silence webpack migration warning
+  // Turbopack is now the default - no custom config needed
+  turbopack: {},
 
   /* Output */
   output: 'standalone', // Per Docker optimization
