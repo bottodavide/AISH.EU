@@ -94,33 +94,39 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
 
     # Crea tutte le tabelle con strategia robusta
     # Usa raw SQL per garantire pulizia completa (tables + indexes + constraints)
-    async with engine.begin() as conn:
+    try:
         logger.info("Resetting database schema (drop + recreate)...")
 
-        # Drop schema pubblico con CASCADE (rimuove tutto: tables, indexes, types, etc.)
-        await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
-        logger.info("Dropped public schema")
+        # Usa connect() invece di begin() per evitare problemi di transazioni
+        # Ogni operazione sarà autocommit
+        async with engine.connect() as conn:
+            # Esegui DROP SCHEMA con autocommit (commit automatico)
+            await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
+            await conn.commit()
+            logger.info("Dropped public schema")
 
-        # Ricrea schema pubblico
-        await conn.execute(sqlalchemy.text("CREATE SCHEMA public"))
-        logger.info("Recreated public schema")
+            # Ricrea schema pubblico
+            await conn.execute(sqlalchemy.text("CREATE SCHEMA public"))
+            await conn.commit()
+            logger.info("Recreated public schema")
 
-        # Grant permissions (necessario dopo ricreazione schema)
-        await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO postgres"))
-        await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO public"))
-        logger.info("Granted schema permissions")
+            # Grant permissions (necessario dopo ricreazione schema)
+            await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO postgres"))
+            await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO public"))
+            await conn.commit()
+            logger.info("Granted schema permissions")
 
-    # Ora crea tutte le tabelle nel schema fresh
-    async with engine.begin() as conn:
-        try:
+        # Ora crea tutte le tabelle nel schema fresh (in una nuova connessione)
+        async with engine.begin() as conn:
             logger.info("Creating database tables and indexes...")
             await conn.run_sync(Base.metadata.create_all)
             logger.info("Successfully created database schema")
-        except Exception as e:
-            logger.error(f"Failed to create database schema: {e}", exc_info=True)
-            raise
 
-    logger.info("Test database schema ready")
+        logger.info("Test database schema ready")
+
+    except Exception as e:
+        logger.error(f"Failed to setup test database: {e}", exc_info=True)
+        raise
 
     yield engine
 
