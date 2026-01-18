@@ -32,7 +32,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-aistrategyhub}
       POSTGRES_USER: ${POSTGRES_USER:-aistrategyhub}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=it_IT.UTF-8"
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C.UTF-8"
       TZ: Europe/Rome
 
     volumes:
