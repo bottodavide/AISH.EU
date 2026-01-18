@@ -186,10 +186,15 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
-        """Parse CORS origins da stringa o lista"""
+        """Parse CORS origins da stringa, lista o valore vuoto"""
+        if v in (None, "", []):
+            return []
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
+            parts = [origin.strip() for origin in v.split(",") if origin.strip()]
+            return parts
+        if isinstance(v, (list, tuple)):
+            return [str(origin).strip() for origin in v]
+        return []
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
