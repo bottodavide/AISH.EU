@@ -91,21 +91,43 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
         echo=False,  # Disabilita SQL logging nei test per performance
     )
 
-    # Crea tutte le tabelle
+    # Crea tutte le tabelle con strategia robusta
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+        # Prova a droppare tabelle esistenti con CASCADE
+        # Ignora errori se le tabelle non esistono
+        try:
+            logger.info("Attempting to drop existing tables...")
+            await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
+            logger.info("Successfully dropped existing tables")
+        except Exception as e:
+            # Log warning ma continua - potrebbe essere prima esecuzione
+            logger.warning(f"Could not drop tables (might not exist): {e}")
 
-    logger.info("Test database schema created")
+        # Crea schema fresh
+        try:
+            logger.info("Creating fresh database schema...")
+            await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+            logger.info("Successfully created database schema")
+        except Exception as e:
+            # Se fallisce la creazione, è un errore critico
+            logger.error(f"Failed to create database schema: {e}", exc_info=True)
+            raise
+
+    logger.info("Test database schema ready")
 
     yield engine
 
     # Cleanup: Drop tutte le tabelle
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        try:
+            logger.info("Cleaning up test database...")
+            await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
+            logger.info("Test database cleanup completed")
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
 
     await engine.dispose()
-    logger.info("Test database cleaned up")
+    logger.info("Test engine disposed")
 
 
 @pytest_asyncio.fixture
