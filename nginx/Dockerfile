@@ -16,12 +16,13 @@ RUN apk add --no-cache \
     openssl \
     curl
 
-# Rimuovi configurazione default
-RUN rm /etc/nginx/conf.d/default.conf
+# Rimuovi configurazione default e crea directory conf.d
+RUN rm /etc/nginx/conf.d/default.conf || true
+RUN mkdir -p /etc/nginx/conf.d
 
 # Copia configurazione Nginx personalizzata
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY conf.d/ /etc/nginx/conf.d/ 2>/dev/null || true
+# niente COPY conf.d
 
 # Crea directory per logs e cache
 RUN mkdir -p /var/log/nginx /var/cache/nginx && \
