@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
@@ -20,7 +20,7 @@ import { getErrorMessage } from '@/lib/api-client';
 import apiClient from '@/lib/api-client';
 import { Key, CheckCircle2 } from 'lucide-react';
 
-export default function PasswordResetPage() {
+function PasswordResetForm() {
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
 
@@ -316,5 +316,17 @@ export default function PasswordResetPage() {
       </Card>
     </div>
     </>
+  );
+}
+
+export default function PasswordResetPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <PasswordResetForm />
+    </Suspense>
   );
 }

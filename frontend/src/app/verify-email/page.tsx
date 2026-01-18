@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
@@ -19,7 +19,7 @@ import apiClient, { getErrorMessage } from '@/lib/api-client';
 
 type VerificationStatus = 'loading' | 'success' | 'error' | 'missing-token';
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -198,5 +198,17 @@ export default function VerifyEmailPage() {
         </Card>
       </main>
     </>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <VerifyEmailForm />
+    </Suspense>
   );
 }

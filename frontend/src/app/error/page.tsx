@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft, Home, RefreshCw, Copy, Check } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 
-export default function ErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [copied, setCopied] = React.useState(false);
@@ -269,5 +269,17 @@ ${errorDetails ? `Dettagli: ${errorDetails}` : ''}
       </Card>
     </div>
     </>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    }>
+      <ErrorContent />
+    </Suspense>
   );
 }
