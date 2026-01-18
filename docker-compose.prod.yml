@@ -1,0 +1,465 @@
+# =============================================================================
+# AI STRATEGY HUB - DOCKER COMPOSE PRODUCTION
+# =============================================================================
+# Configurazione Docker Compose per deployment produzione su Linode VPS
+#
+# Servizi inclusi:
+# - PostgreSQL 15 con pgvector (database)
+# - Redis 7 (cache e sessioni)
+# - Backend FastAPI (API server)
+# - Frontend Next.js (web application)
+# - Nginx (reverse proxy con SSL)
+#
+# Repository: /srv/aish.eu
+# Dominio: aistrategyhub.eu
+#
+# Autore: Claude per Davide
+# Data: 2026-01-18
+# =============================================================================
+
+# NOTA: Docker Compose v2 format (no version: field)
+
+services:
+  # ===========================================================================
+  # DATABASE - PostgreSQL 15 con pgvector
+  # ===========================================================================
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: aistrategyhub-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aistrategyhub}
+      POSTGRES_USER: ${POSTGRES_USER:-aistrategyhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=it_IT.UTF-8"
+      TZ: Europe/Rome
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./backups:/backups
+
+    ports:
+      # Esponi solo su localhost per sicurezza
+      - "127.0.0.1:5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aistrategyhub}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # Security: limita risorse
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - backend_network
+
+  # ===========================================================================
+  # CACHE - Redis 7
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: aistrategyhub-redis
+    restart: unless-stopped
+
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfilename 'appendonly.aof'
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+
+    environment:
+      TZ: Europe/Rome
+
+    volumes:
+      - redis_data:/data
+
+    ports:
+      # Esponi solo su localhost per sicurezza
+      - "127.0.0.1:6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+    # Security: limita risorse
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    networks:
+      - backend_network
+
+  # ===========================================================================
+  # BACKEND - FastAPI Application
+  # ===========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: aistrategyhub-backend
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    environment:
+      # Application
+      ENVIRONMENT: production
+      DEBUG: "false"
+      PROJECT_NAME: "AI Strategy Hub"
+      VERSION: ${VERSION:-0.1.0}
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
+
+      # Database (usa service name "postgres")
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-aistrategyhub}
+      POSTGRES_USER: ${POSTGRES_USER:-aistrategyhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis (usa service name "redis")
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SESSION_TTL_SECONDS: 604800
+
+      # External Services
+      MS_GRAPH_TENANT_ID: ${MS_GRAPH_TENANT_ID}
+      MS_GRAPH_CLIENT_ID: ${MS_GRAPH_CLIENT_ID}
+      MS_GRAPH_CLIENT_SECRET: ${MS_GRAPH_CLIENT_SECRET}
+      MS_GRAPH_SENDER_EMAIL: ${MS_GRAPH_SENDER_EMAIL:-noreply@aistrategyhub.eu}
+      MS_GRAPH_SENDER_NAME: "AI Strategy Hub"
+
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_CURRENCY: eur
+
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CLAUDE_MODEL: claude-sonnet-4-5-20250929
+      CLAUDE_MAX_TOKENS: 4096
+      CLAUDE_TEMPERATURE: 0.7
+
+      # URLs
+      FRONTEND_URL: https://aistrategyhub.eu
+      CORS_ORIGINS: https://aistrategyhub.eu,https://www.aistrategyhub.eu
+
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+
+      # Timezone
+      TZ: Europe/Rome
+
+    volumes:
+      - ./backend/app:/app/app:ro
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+
+    # NON esporre porta 8000 esternamente - solo accessibile via nginx
+    expose:
+      - "8000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Security: limita risorse
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - backend_network
+      - frontend_network
+
+  # ===========================================================================
+  # FRONTEND - Next.js Application
+  # ===========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://aistrategyhub.eu/api
+
+    container_name: aistrategyhub-frontend
+    restart: unless-stopped
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://aistrategyhub.eu/api
+      NEXT_TELEMETRY_DISABLED: 1
+      PORT: 3000
+      TZ: Europe/Rome
+
+    volumes:
+      # In production, non montare source code per sicurezza
+      - frontend_cache:/app/.next/cache
+
+    # NON esporre porta 3000 esternamente - solo accessibile via nginx
+    expose:
+      - "3000"
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Security: limita risorse
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - frontend_network
+
+  # ===========================================================================
+  # REVERSE PROXY - Nginx con SSL
+  # ===========================================================================
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+
+    container_name: aistrategyhub-nginx
+    restart: unless-stopped
+
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+    ports:
+      # Esponi HTTP e HTTPS pubblicamente
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      # Configurazione Nginx
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+
+      # SSL Certificates (Let's Encrypt)
+      - letsencrypt_certs:/etc/letsencrypt:ro
+      - letsencrypt_www:/var/www/certbot
+
+      # Logs
+      - nginx_logs:/var/log/nginx
+
+    environment:
+      TZ: Europe/Rome
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Security: limita risorse
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    networks:
+      - frontend_network
+
+  # ===========================================================================
+  # CERTBOT - Gestione certificati SSL (servizio companion)
+  # ===========================================================================
+  certbot:
+    image: certbot/certbot:latest
+    container_name: aistrategyhub-certbot
+
+    volumes:
+      - letsencrypt_certs:/etc/letsencrypt
+      - letsencrypt_www:/var/www/certbot
+
+    # Comando per generare/rinnovare certificati
+    # Eseguire manualmente con: docker compose -f docker-compose.prod.yml run --rm certbot certonly ...
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+    networks:
+      - frontend_network
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  # Network per comunicazione backend (postgres, redis, backend)
+  backend_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+  # Network per comunicazione frontend (backend, frontend, nginx)
+  frontend_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+
+# =============================================================================
+# VOLUMES (Persistent Storage)
+# =============================================================================
+volumes:
+  # Database
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/data/postgres
+
+  # Cache
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/data/redis
+
+  # Backend
+  backend_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/data/uploads
+
+  backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/logs/backend
+
+  # Frontend
+  frontend_cache:
+    driver: local
+
+  # Nginx
+  nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/logs/nginx
+
+  # SSL Certificates
+  letsencrypt_certs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/ssl/letsencrypt
+
+  letsencrypt_www:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/aish.eu/ssl/www
+
+# =============================================================================
+# DEPLOYMENT INSTRUCTIONS
+# =============================================================================
+# 1. Setup directory structure sul Linode:
+#    mkdir -p /srv/aish.eu/{data/{postgres,redis,uploads},logs/{backend,nginx},ssl/{letsencrypt,www}}
+#
+# 2. Crea file .env in /srv/aish.eu/:
+#    cp .env.example .env
+#    vim .env  # Compila con valori produzione
+#
+# 3. Genera certificati SSL (prima volta):
+#    docker compose -f docker-compose.prod.yml run --rm certbot certonly \
+#      --webroot -w /var/www/certbot \
+#      -d aistrategyhub.eu -d www.aistrategyhub.eu \
+#      --email davide@aistrategyhub.eu \
+#      --agree-tos --no-eff-email
+#
+# 4. Build e avvia servizi:
+#    docker compose -f docker-compose.prod.yml build
+#    docker compose -f docker-compose.prod.yml up -d
+#
+# 5. Verifica health:
+#    docker compose -f docker-compose.prod.yml ps
+#    curl -I https://aistrategyhub.eu/health
+#
+# 6. Monitoring logs:
+#    docker compose -f docker-compose.prod.yml logs -f
+#    docker compose -f docker-compose.prod.yml logs -f backend
+#
+# 7. Backup database (schedule con cron):
+#    docker exec aistrategyhub-postgres pg_dump -U aistrategyhub aistrategyhub > /srv/aish.eu/backups/db_$(date +%Y%m%d_%H%M%S).sql
+#
+# 8. Update deployment:
+#    cd /srv/aish.eu
+#    git pull origin main
+#    docker compose -f docker-compose.prod.yml build
+#    docker compose -f docker-compose.prod.yml up -d
+#    docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
+#
+# 9. SSL renewal automatico (aggiungi a crontab):
+#    0 0 * * * cd /srv/aish.eu && docker compose -f docker-compose.prod.yml exec certbot certbot renew && docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
+# =============================================================================
