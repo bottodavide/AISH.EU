@@ -72,19 +72,24 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
     """
     Crea async engine per test database.
 
-    Usa un database separato per i test (aistrategyhub_test) per evitare
-    conflitti con il database di sviluppo.
+    Usa un database separato per i test con nome univoco per evitare
+    conflitti con run precedenti in CI.
 
     Yields:
         AsyncEngine: SQLAlchemy async engine
     """
-    # URL database di test
+    # URL database di test con nome univoco basato su timestamp
+    # Questo garantisce che ogni workflow run usi un DB completamente nuovo
+    import time
+    unique_suffix = str(int(time.time() * 1000))  # millisecond timestamp
+    test_db_name = f"{settings.POSTGRES_DB}_test_{unique_suffix}"
+
     test_database_url = settings.DATABASE_URL.replace(
         settings.POSTGRES_DB,
-        f"{settings.POSTGRES_DB}_test"
+        test_db_name
     ).replace("postgresql://", "postgresql+asyncpg://")
 
-    logger.info(f"Creating test engine for database: {settings.POSTGRES_DB}_test")
+    logger.info(f"Creating test engine for database: {test_db_name}")
 
     # Crea engine con NullPool per test (no connection pooling)
     engine = create_async_engine(
@@ -93,10 +98,10 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
         echo=False,  # Disabilita SQL logging nei test per performance
     )
 
-    # Crea tutte le tabelle con strategia robusta
+    # Crea database univoco e tabelle
     # Usa raw asyncpg per garantire pulizia completa senza problemi di transazioni
     try:
-        logger.info("Resetting database schema (drop + recreate)...")
+        logger.info("Creating unique test database...")
 
         # Estrai parametri connessione dal database URL
         # Format: postgresql://user:pass@host:port/dbname
@@ -105,13 +110,29 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
         host_port_db = db_url_parts[1].split("/")
         host_port = host_port_db[0].split(":")
 
-        # Connetti direttamente con asyncpg (bypassa SQLAlchemy per schema DDL)
+        #  Connetti al database 'postgres' per creare il test database
+        admin_conn = await asyncpg.connect(
+            user=user_pass[0],
+            password=user_pass[1] if len(user_pass) > 1 else "",
+            host=host_port[0],
+            port=int(host_port[1]) if len(host_port) > 1 else 5432,
+            database="postgres"  # Connetti al database admin
+        )
+
+        try:
+            # Crea database di test univoco
+            await admin_conn.execute(f"CREATE DATABASE {test_db_name}")
+            logger.info(f"Created test database: {test_db_name}")
+        finally:
+            await admin_conn.close()
+
+        # Ora connetti al nuovo database per creare lo schema
         conn = await asyncpg.connect(
             user=user_pass[0],
             password=user_pass[1] if len(user_pass) > 1 else "",
             host=host_port[0],
             port=int(host_port[1]) if len(host_port) > 1 else 5432,
-            database=host_port_db[1]
+            database=test_db_name  # Connetti al database di test appena creato
         )
 
         try:
@@ -160,29 +181,31 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
 
     yield engine
 
-    # Cleanup: Drop schema pubblico (rimuove tutto)
+    # Cleanup: Drop entire test database
     try:
-        logger.info("Cleaning up test database...")
+        logger.info("Dropping test database...")
 
-        # Usa raw asyncpg per cleanup (stesso approccio di setup)
+        # Estrai parametri connessione
         db_url_parts = test_database_url.replace("postgresql+asyncpg://", "").split("@")
         user_pass = db_url_parts[0].split(":")
         host_port_db = db_url_parts[1].split("/")
         host_port = host_port_db[0].split(":")
 
-        conn = await asyncpg.connect(
+        # Connetti al database 'postgres' per droppare il test database
+        admin_conn = await asyncpg.connect(
             user=user_pass[0],
             password=user_pass[1] if len(user_pass) > 1 else "",
             host=host_port[0],
             port=int(host_port[1]) if len(host_port) > 1 else 5432,
-            database=host_port_db[1]
+            database="postgres"  # Connetti al database admin
         )
 
         try:
-            await conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
-            logger.info("Test database cleanup completed")
+            # Drop test database (chiude tutte le connessioni)
+            await admin_conn.execute(f"DROP DATABASE IF EXISTS {test_db_name} WITH (FORCE)")
+            logger.info(f"Dropped test database: {test_db_name}")
         finally:
-            await conn.close()
+            await admin_conn.close()
 
     except Exception as e:
         logger.warning(f"Error during cleanup: {e}")
