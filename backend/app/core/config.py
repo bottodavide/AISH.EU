@@ -180,27 +180,12 @@ class Settings(BaseSettings):
     # =========================================================================
     # SECURITY
     # =========================================================================
-    # CORS - NON leggiamo più dall'env, usiamo solo il default
+    # CORS - Non viene letto dalle env, è solo un attributo normale
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "https://aistrategyhub.eu",
         "https://www.aistrategyhub.eu",
     ]
-
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, v):
-        """Parse CORS origins da stringa, lista o valore vuoto"""
-        # Se arriva qualcosa di strano dall'env, ignoralo e usa il default
-        if not v:
-            return cls.model_fields["CORS_ORIGINS"].default
-        if isinstance(v, str):
-            parts = [origin.strip() for origin in v.split(",") if origin.strip()]
-            return parts or cls.model_fields["CORS_ORIGINS"].default
-        if isinstance(v, (list, tuple)):
-            parts = [str(origin).strip() for origin in v if str(origin).strip()]
-            return parts or cls.model_fields["CORS_ORIGINS"].default
-        return cls.model_fields["CORS_ORIGINS"].default
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
