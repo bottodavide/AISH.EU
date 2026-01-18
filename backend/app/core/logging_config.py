@@ -6,6 +6,7 @@ Data: 2026-01-15
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 from pythonjsonlogger import jsonlogger
@@ -53,9 +54,25 @@ def setup_logging():
     - File rotation per log files
     - Livelli di log configurabili
     - Console e file output
+
+    Note: In CI environment, skippa file logging per evitare permission issues
     """
 
-    # Crea directory log se non esiste
+    # Check if running in CI environment (GitHub Actions, GitLab CI, etc.)
+    is_ci = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
+
+    # In CI, usa solo console logging (no file logging)
+    if is_ci:
+        logging.basicConfig(
+            level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            stream=sys.stdout,
+        )
+        logger = logging.getLogger(__name__)
+        logger.info("Logging configured for CI environment (console only)")
+        return
+
+    # Crea directory log se non esiste (solo in non-CI environments)
     log_dir = Path(settings.LOG_DIR)
     log_dir.mkdir(parents=True, exist_ok=True)
 
