@@ -91,16 +91,6 @@ jobs:
           CLAUDE_API_KEY=mock
           EOF
 
-      - name: Run database migrations
-        run: |
-          cd backend
-          set -a
-          source .env.test
-          set +a
-          alembic upgrade head
-        env:
-          PYTHONPATH: ${{ github.workspace }}/backend
-
       - name: Run tests with pytest
         run: |
           cd backend
