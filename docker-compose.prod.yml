@@ -55,10 +55,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
+          cpus: '0.8'
+          memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: '0.4'
           memory: 512M
 
     networks:
@@ -205,10 +205,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2G
+          cpus: '0.8'
+          memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: '0.4'
           memory: 512M
 
     networks:
@@ -369,7 +369,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/data/postgres
+      device: ./data/postgres
 
   # Cache
   redis_data:
@@ -377,7 +377,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/data/redis
+      device: ./data/redis
 
   # Backend
   backend_uploads:
@@ -385,14 +385,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/data/uploads
+      device: ./data/uploads
 
   backend_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/logs/backend
+      device: ./logs/backend
 
   # Frontend
   frontend_cache:
@@ -404,7 +404,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/logs/nginx
+      device: ./logs/nginx
 
   # SSL Certificates
   letsencrypt_certs:
@@ -412,22 +412,23 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/ssl/letsencrypt
+      device: ./ssl/letsencrypt
 
   letsencrypt_www:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /srv/aish.eu/ssl/www
+      device: ./ssl/www
 
 # =============================================================================
 # DEPLOYMENT INSTRUCTIONS
 # =============================================================================
-# 1. Setup directory structure sul Linode:
-#    mkdir -p /srv/aish.eu/{data/{postgres,redis,uploads},logs/{backend,nginx},ssl/{letsencrypt,www}}
+# 1. Setup directory structure (usa path relativi rispetto al docker-compose):
+#    cd /srv/aish.eu
+#    mkdir -p {data/{postgres,redis,uploads},logs/{backend,nginx},ssl/{letsencrypt,www},backups}
 #
-# 2. Crea file .env in /srv/aish.eu/:
+# 2. Crea file .env nella directory del progetto:
 #    cp .env.example .env
 #    vim .env  # Compila con valori produzione
 #
