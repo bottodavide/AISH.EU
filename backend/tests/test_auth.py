@@ -26,6 +26,7 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -54,7 +55,7 @@ class TestRegistration:
     @pytest.mark.asyncio
     async def test_register_valid_user(
         self,
-        client: TestClient,
+        async_client: AsyncClient,
         db_session: AsyncSession,
         mock_ms_graph,
     ):
@@ -71,7 +72,7 @@ class TestRegistration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/register", json=registration_data)
+        response = await async_client.post("/api/v1/auth/register", json=registration_data)
 
         # Assert
         assert response.status_code == 201
@@ -99,7 +100,7 @@ class TestRegistration:
     @pytest.mark.asyncio
     async def test_register_duplicate_email(
         self,
-        client: TestClient,
+        async_client: AsyncClient,
         db_session: AsyncSession,
         test_user: User,
     ):
@@ -116,7 +117,7 @@ class TestRegistration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/register", json=registration_data)
+        response = await async_client.post("/api/v1/auth/register", json=registration_data)
 
         # Assert
         assert response.status_code == 409
@@ -232,7 +233,7 @@ class TestRegistration:
     @pytest.mark.asyncio
     async def test_register_special_characters_in_name(
         self,
-        client: TestClient,
+        async_client: AsyncClient,
         db_session: AsyncSession,
         mock_ms_graph,
     ):
@@ -249,7 +250,7 @@ class TestRegistration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/register", json=registration_data)
+        response = await async_client.post("/api/v1/auth/register", json=registration_data)
 
         # Assert
         assert response.status_code == 201
@@ -257,7 +258,7 @@ class TestRegistration:
     @pytest.mark.asyncio
     async def test_register_creates_user_profile(
         self,
-        client: TestClient,
+        async_client: AsyncClient,
         db_session: AsyncSession,
         mock_ms_graph,
     ):
@@ -274,7 +275,7 @@ class TestRegistration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/register", json=registration_data)
+        response = await async_client.post("/api/v1/auth/register", json=registration_data)
 
         # Assert
         assert response.status_code == 201
@@ -291,7 +292,7 @@ class TestRegistration:
     @pytest.mark.asyncio
     async def test_register_sends_verification_email(
         self,
-        client: TestClient,
+        async_client: AsyncClient,
         mock_ms_graph,
     ):
         """Test registrazione invia email di verifica."""
@@ -307,7 +308,7 @@ class TestRegistration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/register", json=registration_data)
+        response = await async_client.post("/api/v1/auth/register", json=registration_data)
 
         # Assert
         assert response.status_code == 201
