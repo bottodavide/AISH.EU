@@ -24,6 +24,7 @@ import uuid
 
 import pytest
 import pytest_asyncio
+import sqlalchemy
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from sqlalchemy import event
@@ -92,24 +93,30 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
     )
 
     # Crea tutte le tabelle con strategia robusta
+    # Usa raw SQL per garantire pulizia completa (tables + indexes + constraints)
     async with engine.begin() as conn:
-        # Prova a droppare tabelle esistenti con CASCADE
-        # Ignora errori se le tabelle non esistono
-        try:
-            logger.info("Attempting to drop existing tables...")
-            await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
-            logger.info("Successfully dropped existing tables")
-        except Exception as e:
-            # Log warning ma continua - potrebbe essere prima esecuzione
-            logger.warning(f"Could not drop tables (might not exist): {e}")
+        logger.info("Resetting database schema (drop + recreate)...")
 
-        # Crea schema fresh
+        # Drop schema pubblico con CASCADE (rimuove tutto: tables, indexes, types, etc.)
+        await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
+        logger.info("Dropped public schema")
+
+        # Ricrea schema pubblico
+        await conn.execute(sqlalchemy.text("CREATE SCHEMA public"))
+        logger.info("Recreated public schema")
+
+        # Grant permissions (necessario dopo ricreazione schema)
+        await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO postgres"))
+        await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO public"))
+        logger.info("Granted schema permissions")
+
+    # Ora crea tutte le tabelle nel schema fresh
+    async with engine.begin() as conn:
         try:
-            logger.info("Creating fresh database schema...")
-            await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+            logger.info("Creating database tables and indexes...")
+            await conn.run_sync(Base.metadata.create_all)
             logger.info("Successfully created database schema")
         except Exception as e:
-            # Se fallisce la creazione, è un errore critico
             logger.error(f"Failed to create database schema: {e}", exc_info=True)
             raise
 
@@ -117,11 +124,11 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
 
     yield engine
 
-    # Cleanup: Drop tutte le tabelle
+    # Cleanup: Drop schema pubblico (rimuove tutto)
     async with engine.begin() as conn:
         try:
             logger.info("Cleaning up test database...")
-            await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
+            await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
             logger.info("Test database cleanup completed")
         except Exception as e:
             logger.warning(f"Error during cleanup: {e}")
