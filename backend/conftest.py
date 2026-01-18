@@ -132,9 +132,23 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
             await conn.close()
             logger.info("Closed raw asyncpg connection")
 
-        # Ora crea tutte le tabelle usando SQLAlchemy (in una connessione pulita)
-        async with engine.begin() as conn:
+        # Dispose engine to clear any pooled connections
+        await engine.dispose()
+        logger.info("Disposed old engine to clear connection pool")
+
+        # Create fresh engine to ensure no cached metadata
+        engine = create_async_engine(
+            test_database_url,
+            poolclass=NullPool,
+            echo=False,
+            isolation_level="AUTOCOMMIT",  # Force autocommit for DDL
+        )
+        logger.info("Created fresh engine with AUTOCOMMIT isolation")
+
+        # Ora crea tutte le tabelle usando SQLAlchemy (in una connessione veramente pulita)
+        async with engine.connect() as conn:
             logger.info("Creating database tables and indexes...")
+            # Usa run_sync_sync per eseguire DDL
             await conn.run_sync(Base.metadata.create_all)
             logger.info("Successfully created database schema")
 
