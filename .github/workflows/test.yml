@@ -89,7 +89,9 @@ jobs:
       - name: Run database migrations
         run: |
           cd backend
-          export $(cat .env.test | xargs)
+          set -a
+          source .env.test
+          set +a
           alembic upgrade head
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
@@ -97,7 +99,9 @@ jobs:
       - name: Run tests with pytest
         run: |
           cd backend
-          export $(cat .env.test | xargs)
+          set -a
+          source .env.test
+          set +a
           pytest \
             --cov=app \
             --cov-report=xml \
@@ -211,6 +215,9 @@ jobs:
   security-scan:
     name: Security Scanning
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout code
