@@ -550,11 +550,11 @@ def mock_ms_graph():
     Returns:
         Mock: Mock object per MS Graph API
     """
-    with patch("app.services.email_service.MSGraphService") as mock:
-        # Mock email sending
-        mock_instance = Mock()
-        mock_instance.send_email.return_value = True
-        mock.return_value = mock_instance
+    # Patch the ms_graph_service singleton instance used by email_service
+    with patch("app.services.ms_graph.ms_graph_service") as mock:
+        # Mock email sending method
+        mock.send_email.return_value = True
+        mock.is_enabled.return_value = True
 
         logger.info("Microsoft Graph API mocked")
         yield mock
