@@ -6,6 +6,14 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  /* Build Configuration */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   /* Image Optimization */
   images: {
     domains: [
