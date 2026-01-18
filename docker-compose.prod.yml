@@ -176,7 +176,6 @@ services:
 
       # URLs
       FRONTEND_URL: https://aistrategyhub.eu
-      CORS_ORIGINS: "https://aistrategyhub.eu,https://www.aistrategyhub.eu"
 
       # Logging
       LOG_LEVEL: INFO
