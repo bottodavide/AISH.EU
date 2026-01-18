@@ -10,8 +10,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import apiClient from '@/lib/api-client';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import apiClient, { isNetworkError } from '@/lib/api-client';
+import { ChevronLeft, ChevronRight, WifiOff } from 'lucide-react';
 
 interface Banner {
   id: string;
@@ -39,6 +39,7 @@ export function BannerHero() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     loadBanners();
@@ -57,6 +58,7 @@ export function BannerHero() {
 
   const loadBanners = async () => {
     setIsLoading(true);
+    setNetworkError(false);
 
     try {
       const response = await apiClient.get<BannersResponse>('/homepage/banners', {
@@ -69,12 +71,17 @@ export function BannerHero() {
 
       setBanners(response.banners || []);
     } catch (err: any) {
-      // Gestione errore 404: nessun banner disponibile
-      if (err.response?.status === 404) {
+      // Gestione errore di rete: backend non raggiungibile
+      if (isNetworkError(err)) {
+        console.error('Backend non raggiungibile. Verifica che il server sia avviato.');
+        setNetworkError(true);
+        setBanners([]);
+      } else if (err.response?.status === 404) {
+        // Errore 404: nessun banner disponibile
         console.log('No hero banners found, showing fallback');
         setBanners([]);
       } else {
-        // Altri errori (rete, server, ecc.)
+        // Altri errori (500, ecc.)
         console.error('Failed to load hero banners:', err);
         setBanners([]);
       }
@@ -97,6 +104,18 @@ export function BannerHero() {
       <section className="relative py-20 lg:py-32 bg-gradient-to-b from-background to-muted">
         <div className="container">
           <div className="mx-auto max-w-4xl text-center">
+            {/* Mostra avviso se errore di rete (solo in development) */}
+            {networkError && process.env.NODE_ENV === 'development' && (
+              <div className="mb-8 p-4 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                <div className="flex items-center justify-center gap-2 text-yellow-800 dark:text-yellow-200">
+                  <WifiOff className="h-5 w-5" />
+                  <p className="text-sm font-medium">
+                    Backend non raggiungibile. Verifica che il server sia avviato su http://localhost:8000
+                  </p>
+                </div>
+              </div>
+            )}
+
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
               Innovazione AI in Sicurezza e Compliance
             </h1>

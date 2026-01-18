@@ -108,12 +108,22 @@ class ApiClient {
 
         // Log errori per debugging (solo in development)
         if (process.env.NODE_ENV === 'development') {
-          console.error('API Error:', {
-            url: error.config?.url,
-            method: error.config?.method,
-            status: error.response?.status,
-            data: error.response?.data,
-          });
+          // Distingui tra network error e altri errori
+          if (error.code === 'ERR_NETWORK' || (error.request && !error.response)) {
+            console.error('Network Error - Backend non raggiungibile:', {
+              url: error.config?.url,
+              method: error.config?.method,
+              baseURL: this.client.defaults.baseURL,
+              message: 'Verifica che il backend sia avviato su ' + this.client.defaults.baseURL,
+            });
+          } else {
+            console.error('API Error:', {
+              url: error.config?.url,
+              method: error.config?.method,
+              status: error.response?.status,
+              data: error.response?.data,
+            });
+          }
         }
 
         return Promise.reject(error);
