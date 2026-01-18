@@ -1,0 +1,89 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Linode VPS
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            set -e
+
+            # Navigate to project directory
+            cd /opt/aistrategyhub
+
+            # Pull latest changes
+            echo "Pulling latest changes..."
+            git pull origin main
+
+            # Backup database
+            echo "Creating database backup..."
+            docker exec aistrategyhub-db pg_dump -U postgres aistrategyhub > /backup/db_$(date +%Y%m%d_%H%M%S).sql
+
+            # Run migrations
+            echo "Running database migrations..."
+            docker exec aistrategyhub-backend alembic upgrade head
+
+            # Rebuild and restart containers
+            echo "Rebuilding containers..."
+            docker-compose build --no-cache
+            docker-compose up -d
+
+            # Wait for services to be healthy
+            echo "Waiting for services..."
+            sleep 10
+
+            # Health check
+            echo "Running health check..."
+            curl -f http://localhost:8000/health || exit 1
+
+            # Clear old images
+            echo "Cleaning up old Docker images..."
+            docker image prune -f
+
+            echo "✓ Deployment completed successfully"
+          ENDSSH
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful"
+          else
+            echo "❌ Deployment failed"
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false

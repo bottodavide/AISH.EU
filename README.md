@@ -3,6 +3,13 @@
 **Piattaforma E-Commerce per Servizi di Consulenza**
 AI, GDPR, Cybersecurity & Compliance
 
+[![Test Suite](https://github.com/bottodavide/AISH.EU/workflows/Test%20Suite/badge.svg)](https://github.com/bottodavide/AISH.EU/actions/workflows/test.yml)
+[![Code Quality](https://github.com/bottodavide/AISH.EU/workflows/Code%20Quality/badge.svg)](https://github.com/bottodavide/AISH.EU/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/bottodavide/AISH.EU/branch/main/graph/badge.svg)](https://codecov.io/gh/bottodavide/AISH.EU)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Node 20+](https://img.shields.io/badge/node-20+-green.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ---
 
 ## Panoramica
