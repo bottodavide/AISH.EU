@@ -63,9 +63,11 @@ class TestRegistration:
         registration_data = {
             "email": "newuser@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -106,9 +108,11 @@ class TestRegistration:
         registration_data = {
             "email": test_user.email,
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -126,9 +130,11 @@ class TestRegistration:
         registration_data = {
             "email": "newuser@example.com",
             "password": "weak",
-            "password_confirm": "weak",
+            "confirm_password": "weak",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -146,9 +152,11 @@ class TestRegistration:
         registration_data = {
             "email": "newuser@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "DifferentPassword123!",
+            "confirm_password": "DifferentPassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -166,9 +174,11 @@ class TestRegistration:
         registration_data = {
             "email": "not-an-email",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -186,8 +196,10 @@ class TestRegistration:
         registration_data = {
             "email": "newuser@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -204,9 +216,11 @@ class TestRegistration:
         registration_data = {
             "email": long_email,
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -227,9 +241,11 @@ class TestRegistration:
         registration_data = {
             "email": "special@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "Jean-François",
             "last_name": "O'Brien",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -250,9 +266,11 @@ class TestRegistration:
         registration_data = {
             "email": "profile@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -281,9 +299,11 @@ class TestRegistration:
         registration_data = {
             "email": "verify@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -310,9 +330,11 @@ class TestRegistration:
         registration_data = {
             "email": "token@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -334,9 +356,11 @@ class TestRegistration:
         registration_data = {
             "email": "  whitespace@example.com  ",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "  John  ",
             "last_name": "  Doe  ",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -355,9 +379,11 @@ class TestRegistration:
         registration_data = {
             "email": "admin@example.com'; DROP TABLE users; --",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -373,9 +399,11 @@ class TestRegistration:
         registration_data = {
             "email": "xss@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "<script>alert('XSS')</script>",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -396,9 +424,11 @@ class TestRegistration:
         registration_data = {
             "email": "unicode@example.com",
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "José",
             "last_name": "Müller",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -414,9 +444,11 @@ class TestRegistration:
         registration_data = {
             "email": "noupper@example.com",
             "password": "securepassword123!",
-            "password_confirm": "securepassword123!",
+            "confirm_password": "securepassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -432,9 +464,11 @@ class TestRegistration:
         registration_data = {
             "email": "nonumbers@example.com",
             "password": "SecurePassword!",
-            "password_confirm": "SecurePassword!",
+            "confirm_password": "SecurePassword!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -450,9 +484,11 @@ class TestRegistration:
         registration_data = {
             "email": "nospecial@example.com",
             "password": "SecurePassword123",
-            "password_confirm": "SecurePassword123",
+            "confirm_password": "SecurePassword123",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
@@ -472,9 +508,11 @@ class TestRegistration:
         registration_data = {
             "email": test_user.email.upper(),
             "password": "SecurePassword123!",
-            "password_confirm": "SecurePassword123!",
+            "confirm_password": "SecurePassword123!",
             "first_name": "John",
             "last_name": "Doe",
+            "accept_terms": True,
+            "accept_privacy": True,
         }
 
         # Act
