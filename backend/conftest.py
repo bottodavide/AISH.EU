@@ -25,6 +25,7 @@ import uuid
 import pytest
 import pytest_asyncio
 import sqlalchemy
+import asyncpg
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from sqlalchemy import event
@@ -93,30 +94,45 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
     )
 
     # Crea tutte le tabelle con strategia robusta
-    # Usa raw SQL per garantire pulizia completa (tables + indexes + constraints)
+    # Usa raw asyncpg per garantire pulizia completa senza problemi di transazioni
     try:
         logger.info("Resetting database schema (drop + recreate)...")
 
-        # Usa connect() invece di begin() per evitare problemi di transazioni
-        # Ogni operazione sarà autocommit
-        async with engine.connect() as conn:
-            # Esegui DROP SCHEMA con autocommit (commit automatico)
-            await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
-            await conn.commit()
+        # Estrai parametri connessione dal database URL
+        # Format: postgresql://user:pass@host:port/dbname
+        db_url_parts = test_database_url.replace("postgresql+asyncpg://", "").split("@")
+        user_pass = db_url_parts[0].split(":")
+        host_port_db = db_url_parts[1].split("/")
+        host_port = host_port_db[0].split(":")
+
+        # Connetti direttamente con asyncpg (bypassa SQLAlchemy per schema DDL)
+        conn = await asyncpg.connect(
+            user=user_pass[0],
+            password=user_pass[1] if len(user_pass) > 1 else "",
+            host=host_port[0],
+            port=int(host_port[1]) if len(host_port) > 1 else 5432,
+            database=host_port_db[1]
+        )
+
+        try:
+            # DROP SCHEMA CASCADE (rimuove TUTTO: tables, indexes, types, sequences, etc.)
+            await conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
             logger.info("Dropped public schema")
 
             # Ricrea schema pubblico
-            await conn.execute(sqlalchemy.text("CREATE SCHEMA public"))
-            await conn.commit()
+            await conn.execute("CREATE SCHEMA public")
             logger.info("Recreated public schema")
 
-            # Grant permissions (necessario dopo ricreazione schema)
-            await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO postgres"))
-            await conn.execute(sqlalchemy.text("GRANT ALL ON SCHEMA public TO public"))
-            await conn.commit()
+            # Grant permissions
+            await conn.execute("GRANT ALL ON SCHEMA public TO postgres")
+            await conn.execute("GRANT ALL ON SCHEMA public TO public")
             logger.info("Granted schema permissions")
 
-        # Ora crea tutte le tabelle nel schema fresh (in una nuova connessione)
+        finally:
+            await conn.close()
+            logger.info("Closed raw asyncpg connection")
+
+        # Ora crea tutte le tabelle usando SQLAlchemy (in una connessione pulita)
         async with engine.begin() as conn:
             logger.info("Creating database tables and indexes...")
             await conn.run_sync(Base.metadata.create_all)
@@ -131,13 +147,31 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
     yield engine
 
     # Cleanup: Drop schema pubblico (rimuove tutto)
-    async with engine.begin() as conn:
+    try:
+        logger.info("Cleaning up test database...")
+
+        # Usa raw asyncpg per cleanup (stesso approccio di setup)
+        db_url_parts = test_database_url.replace("postgresql+asyncpg://", "").split("@")
+        user_pass = db_url_parts[0].split(":")
+        host_port_db = db_url_parts[1].split("/")
+        host_port = host_port_db[0].split(":")
+
+        conn = await asyncpg.connect(
+            user=user_pass[0],
+            password=user_pass[1] if len(user_pass) > 1 else "",
+            host=host_port[0],
+            port=int(host_port[1]) if len(host_port) > 1 else 5432,
+            database=host_port_db[1]
+        )
+
         try:
-            logger.info("Cleaning up test database...")
-            await conn.execute(sqlalchemy.text("DROP SCHEMA IF EXISTS public CASCADE"))
+            await conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
             logger.info("Test database cleanup completed")
-        except Exception as e:
-            logger.warning(f"Error during cleanup: {e}")
+        finally:
+            await conn.close()
+
+    except Exception as e:
+        logger.warning(f"Error during cleanup: {e}")
 
     await engine.dispose()
     logger.info("Test engine disposed")
