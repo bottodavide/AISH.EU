@@ -606,6 +606,12 @@ class Payment(Base, UUIDMixin, TimestampMixin):
         comment="Stripe Payment Intent ID (pi_...)",
     )
 
+    stripe_client_secret = Column(
+        String(500),
+        nullable=True,
+        comment="Stripe client secret per frontend confirmation",
+    )
+
     # -------------------------------------------------------------------------
     # Payment Info
     # -------------------------------------------------------------------------
@@ -657,6 +663,12 @@ class Payment(Base, UUIDMixin, TimestampMixin):
         comment="Metadata Stripe e custom",
     )
 
+    transaction_data = Column(
+        JSONB,
+        nullable=True,
+        comment="Dati completi transazione da webhook Stripe",
+    )
+
     # -------------------------------------------------------------------------
     # Timestamps
     # -------------------------------------------------------------------------
@@ -666,6 +678,20 @@ class Payment(Base, UUIDMixin, TimestampMixin):
         nullable=True,
         index=True,
         comment="Timestamp elaborazione pagamento",
+    )
+
+    paid_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+        comment="Timestamp pagamento completato (da webhook)",
+    )
+
+    refunded_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+        comment="Timestamp rimborso completato (da webhook)",
     )
 
     # -------------------------------------------------------------------------
