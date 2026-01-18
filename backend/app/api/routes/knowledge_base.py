@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from pydantic import BaseModel, Field
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 from app.core.database import get_db, get_async_db
 from app.core.dependencies import get_current_user
