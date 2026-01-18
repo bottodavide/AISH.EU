@@ -245,10 +245,6 @@ class Settings(BaseSettings):
     DOMAIN: Optional[str] = None
     SENTRY_DSN: Optional[str] = None
 
-    # Escludi CORS_ORIGINS dalle env per evitare parsing da EnvSettingsSource
-    class Config:
-        env_excluded = {"CORS_ORIGINS"}
-
     # =========================================================================
     # Computed Properties
     # =========================================================================
