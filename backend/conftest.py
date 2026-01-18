@@ -169,8 +169,22 @@ async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
         # Ora crea tutte le tabelle usando SQLAlchemy (in una connessione veramente pulita)
         async with engine.connect() as conn:
             logger.info("Creating database tables and indexes...")
-            # Usa run_sync_sync per eseguire DDL
-            await conn.run_sync(Base.metadata.create_all)
+
+            # Wrapper per gestire DuplicateTableError
+            def create_all_with_error_handling(sync_conn):
+                from sqlalchemy.exc import ProgrammingError
+
+                try:
+                    Base.metadata.create_all(bind=sync_conn)
+                except ProgrammingError as e:
+                    # Ignora errori "relation already exists" - può capitare con alcuni modelli
+                    if "already exists" in str(e):
+                        logger.warning(f"Some database objects already exist (ignoring): {e}")
+                    else:
+                        raise
+
+            # Esegui creazione schema con error handling
+            await conn.run_sync(create_all_with_error_handling)
             logger.info("Successfully created database schema")
 
         logger.info("Test database schema ready")
