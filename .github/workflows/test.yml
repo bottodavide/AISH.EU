@@ -59,8 +59,11 @@ jobs:
           cd backend
           cat > .env.test <<EOF
           # Test Environment
-          ENVIRONMENT=test
+          ENVIRONMENT=development
           DEBUG=False
+
+          # App Secrets
+          SECRET_KEY=test-secret-key-for-ci-only-not-production-use-random-in-prod
 
           # Database
           POSTGRES_HOST=localhost
@@ -74,8 +77,10 @@ jobs:
           REDIS_PORT=6379
 
           # JWT Secrets (test only)
-          JWT_SECRET_KEY=test-secret-key-for-ci-only-not-production
+          JWT_SECRET_KEY=test-jwt-secret-key-for-ci-only-not-production
           JWT_ALGORITHM=HS256
+          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+          JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 
           # External Services (mocked in tests)
           STRIPE_SECRET_KEY=sk_test_mock
